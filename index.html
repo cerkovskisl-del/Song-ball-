@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ritma Mikseris - Jaunās Dziesmas</title>
+    <title>Ritma Mikseris - Īstas Melodijas</title>
     <style>
         body {
             margin: 0;
@@ -76,17 +76,13 @@
 
     <div id="ui-container">
         <select id="songSelect">
-            <option value="pirates">🏴‍☠️ He's a Pirate (Karību Jūras Pirāti - 3 Bumbas)</option>
-            <option value="cyberpunk">⚡ Cyberpunk Beats (4 Bumbas - Labs Bass)</option>
-            <option value="megalovania_v2">💀 Megalovania Remix (4 Celiņi)</option>
-            <option value="mega_mix">🎛️ Mega Ritma Salikums (4 Celiņi)</option>
+            <option value="pirates">🏴‍☠️ He's a Pirate (Pilnāka tēma)</option>
+            <option value="tetris">🧱 Tetris (Melodija un Bass)</option>
         </select>
 
         <div id="controls">
             <button class="toggle-btn active" id="btn0">🟢 Melodija</button>
-            <button class="toggle-btn active" id="btn1">🔵 Harmonija</button>
-            <button class="toggle-btn active" id="btn2">🟡 Ritms</button>
-            <button class="toggle-btn active" id="btn3">🔴 Basi</button>
+            <button class="toggle-btn active" id="btn1">🔵 Bass / Ritms</button>
         </div>
     </div>
 
@@ -106,94 +102,55 @@
         let audioCtx = null;
         let flashOpacity = 0;
 
-        // Atjaunotā dziesmu datu bāze ar jaunajām kompozīcijām
         const songs = {
             pirates: [
-                { // 1. Bumba: Pamata tēma (Vijoļu solo)
-                    type: "triangle", color: "#00ffcc", offsetX: -40,
+                { // 1. Bumba: Slavenais motīvs
+                    type: "triangle", color: "#00ffcc", offsetX: -30,
                     notes: [
-                        {f: 293.66, d: 0.2}, {f: 329.63, d: 0.2}, {f: 349.23, d: 0.4}, {f: 392.00, d: 0.2},
-                        {f: 440.00, d: 0.4}, {f: 392.00, d: 0.2}, {f: 349.23, d: 0.4}, {f: 329.63, d: 0.2},
-                        {f: 293.66, d: 0.6}, {f: 349.23, d: 0.2}, {f: 392.00, d: 0.2}, {f: 440.00, d: 0.4}
+                        {f: 293.66, d: 0.15}, {f: 329.63, d: 0.15}, {f: 349.23, d: 0.3}, {f: 392.00, d: 0.15},
+                        {f: 440.00, d: 0.3}, {f: 392.00, d: 0.15}, {f: 349.23, d: 0.3}, {f: 329.63, d: 0.15},
+                        {f: 293.66, d: 0.45}, {f: 0.00, d: 0.15},
+                        {f: 293.66, d: 0.15}, {f: 329.63, d: 0.15}, {f: 349.23, d: 0.3}, {f: 392.00, d: 0.15},
+                        {f: 440.00, d: 0.3}, {f: 392.00, d: 0.15}, {f: 349.23, d: 0.3}, {f: 369.99, d: 0.15},
+                        {f: 392.00, d: 0.45}
                     ]
                 },
-                { // 2. Bumba: Pūšamie instrumenti (Harmonija)
-                    type: "sawtooth", color: "#0077ff", offsetX: 0,
+                { // 2. Bumba: Pavadošais marša ritms
+                    type: "sine", color: "#ff0055", offsetX: 30,
                     notes: [
-                        {f: 146.83, d: 0.6}, {f: 174.61, d: 0.6}, {f: 220.00, d: 0.6}, {f: 196.00, d: 0.6},
-                        {f: 146.83, d: 0.6}, {f: 130.81, d: 0.6}, {f: 146.83, d: 1.2}
-                    ]
-                },
-                { // 3. Bumba: Orķestra bungas/Ritms
-                    type: "sine", color: "#ff0055", offsetX: 40,
-                    notes: [
-                        {f: 90.00, d: 0.2}, {f: 90.00, d: 0.2}, {f: 140.00, d: 0.2},
-                        {f: 90.00, d: 0.2}, {f: 90.00, d: 0.2}, {f: 140.00, d: 0.2},
-                        {f: 90.00, d: 0.2}, {f: 90.00, d: 0.2}, {f: 140.00, d: 0.2}
+                        {f: 110.00, d: 0.3}, {f: 110.00, d: 0.15}, {f: 110.00, d: 0.15},
+                        {f: 110.00, d: 0.3}, {f: 110.00, d: 0.15}, {f: 110.00, d: 0.15},
+                        {f: 146.83, d: 0.3}, {f: 146.83, d: 0.15}, {f: 146.83, d: 0.15},
+                        {f: 130.81, d: 0.3}, {f: 130.81, d: 0.15}, {f: 130.81, d: 0.15}
                     ]
                 }
             ],
-            cyberpunk: [
-                { // 1. Bumba: Lāzera Melodija
-                    type: "sawtooth", color: "#00ffcc", offsetX: -60,
-                    notes: [{f: 440.00, d: 0.15}, {f: 440.00, d: 0.15}, {f: 0.00, d: 0.15}, {f: 523.25, d: 0.15}, {f: 493.88, d: 0.3}]
+            tetris: [
+                { // 1. Bumba: Galvenā melodija soli pa solim
+                    type: "triangle", color: "#00ffcc", offsetX: -30,
+                    notes: [
+                        {f: 659.25, d: 0.4}, {f: 493.88, d: 0.2}, {f: 523.25, d: 0.2}, {f: 587.33, d: 0.4},
+                        {f: 523.25, d: 0.2}, {f: 493.88, d: 0.2}, {f: 440.00, d: 0.4}, {f: 440.00, d: 0.2},
+                        {f: 523.25, d: 0.2}, {f: 659.25, d: 0.4}, {f: 587.33, d: 0.2}, {f: 523.25, d: 0.2},
+                        {f: 493.88, d: 0.6}, {f: 523.25, d: 0.2}, {f: 587.33, d: 0.4}, {f: 659.25, d: 0.4},
+                        {f: 523.25, d: 0.4}, {f: 440.00, d: 0.4}, {f: 440.00, d: 0.4}
+                    ]
                 },
-                { // 2. Bumba: Sintezatora fons
-                    type: "triangle", color: "#0077ff", offsetX: -20,
-                    notes: [{f: 220.00, d: 0.6}, {f: 261.63, d: 0.6}, {f: 196.00, d: 0.6}, {f: 220.00, d: 0.6}]
-                },
-                { // 3. Bumba: Ātrais Hi-Hat (čiks)
-                    type: "triangle", color: "#ffcc00", offsetX: 20,
-                    notes: [{f: 900.00, d: 0.1}, {f: 0.00, d: 0.1}, {f: 900.00, d: 0.1}, {f: 900.00, d: 0.1}]
-                },
-                { // 4. Bumba: Smagais Sub-Bass
-                    type: "sine", color: "#ff0055", offsetX: 60,
-                    notes: [{f: 55.00, d: 0.3}, {f: 55.00, d: 0.3}, {f: 0.00, d: 0.3}, {f: 65.41, d: 0.3}]
-                }
-            ],
-            megalovania_v2: [
-                { // 1. Bumba: Ātrā vadošā tēma
-                    type: "triangle", color: "#00ffcc", offsetX: -60,
-                    notes: [{f: 293.66, d: 0.15}, {f: 293.66, d: 0.15}, {f: 587.33, d: 0.3}, {f: 440.00, d: 0.45}]
-                },
-                { // 2. Bumba: Vidējais reģistrs
-                    type: "sawtooth", color: "#0077ff", offsetX: -20,
-                    notes: [{f: 146.83, d: 0.3}, {f: 146.83, d: 0.3}, {f: 146.83, d: 0.45}]
-                },
-                { // 3. Bumba: Ritma akcenti
-                    type: "sine", color: "#ffcc00", offsetX: 20,
-                    notes: [{f: 300.00, d: 0.15}, {f: 0.00, d: 0.15}, {f: 200.00, d: 0.3}]
-                },
-                { // 4. Bumba: Zemie basu sitieni
-                    type: "sine", color: "#ff0055", offsetX: 60,
-                    notes: [{f: 73.42, d: 0.6}, {f: 65.41, d: 0.6}]
-                }
-            ],
-            mega_mix: [
-                { 
-                    type: "triangle", color: "#00ffcc", offsetX: -60,
-                    notes: [{f: 523.25, d: 0.3}, {f: 587.33, d: 0.3}, {f: 659.25, d: 0.3}, {f: 783.99, d: 0.6}]
-                },
-                { 
-                    type: "sawtooth", color: "#0077ff", offsetX: -20,
-                    notes: [{f: 261.63, d: 0.6}, {f: 329.63, d: 0.6}, {f: 392.00, d: 0.6}, {f: 329.63, d: 0.6}]
-                },
-                { 
-                    type: "sine", color: "#ffcc00", offsetX: 20,
-                    notes: [{f: 800.00, d: 0.15}, {f: 0.00, d: 0.15}, {f: 600.00, d: 0.15}, {f: 0.00, d: 0.15}]
-                },
-                { 
-                    type: "sine", color: "#ff0055", offsetX: 60,
-                    notes: [{f: 70.00, d: 0.45}, {f: 70.00, d: 0.45}, {f: 120.00, d: 0.3}]
+                { // 2. Bumba: Sinhronizēts bass
+                    type: "sine", color: "#0077ff", offsetX: 30,
+                    notes: [
+                        {f: 220.00, d: 0.4}, {f: 220.00, d: 0.4}, {f: 293.66, d: 0.4}, {f: 293.66, d: 0.4},
+                        {f: 261.63, d: 0.4}, {f: 261.63, d: 0.4}, {f: 220.00, d: 0.4}, {f: 220.00, d: 0.4},
+                        {f: 196.00, d: 0.4}, {f: 196.00, d: 0.4}, {f: 220.00, d: 0.8}
+                    ]
                 }
             ]
         };
 
         class RhythmBall {
             constructor(config) {
-                this.radius = 11;
+                this.radius = 12;
                 this.maxTravel = outerRadius - this.radius - 4;
-                
                 this.type = config.type;
                 this.color = config.color;
                 this.offsetX = config.offsetX;
@@ -223,12 +180,7 @@
                 let progress = timePassed / this.currentNoteDuration;
                 if (progress > 1) progress = 1;
 
-                let positionFactor;
-                if (this.noteIndex % 2 === 0) {
-                    positionFactor = Math.cos(progress * Math.PI);
-                } else {
-                    positionFactor = -Math.cos(progress * Math.PI);
-                }
+                let positionFactor = (this.noteIndex % 2 === 0) ? Math.cos(progress * Math.PI) : -Math.cos(progress * Math.PI);
 
                 this.x = centerX + this.offsetX;
                 this.y = centerY + positionFactor * this.maxTravel;
@@ -250,14 +202,14 @@
                     osc.type = this.type;
                     osc.frequency.setValueAtTime(note.f, audioCtx.currentTime);
 
-                    let vol = this.type === "sine" ? 0.4 : 0.16;
+                    let vol = this.type === "sine" ? 0.35 : 0.15;
                     gain.gain.setValueAtTime(vol, audioCtx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + note.d);
 
                     osc.start();
                     osc.stop(audioCtx.currentTime + note.d);
                     
-                    flashOpacity = 0.25;
+                    flashOpacity = 0.2;
                 }
 
                 this.noteIndex++;
@@ -269,7 +221,6 @@
             draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                
                 if (this.active) {
                     ctx.fillStyle = this.color;
                     ctx.shadowBlur = 15;
@@ -291,16 +242,13 @@
             activeBalls = [];
             const ballConfigs = songs[songSelect.value];
             
-            // Sākumā paslēpjam visas pogas
-            for(let i = 0; i < 4; i++) {
+            for(let i = 0; i < 2; i++) {
                 document.getElementById(`btn${i}`).style.display = "none";
             }
 
             ballConfigs.forEach((config, index) => {
                 const newBall = new RhythmBall(config);
-                if (audioCtx) {
-                    newBall.reset(audioCtx.currentTime);
-                }
+                if (audioCtx) newBall.reset(audioCtx.currentTime);
                 activeBalls.push(newBall);
                 
                 const btn = document.getElementById(`btn${index}`);
@@ -316,23 +264,18 @@
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 activeBalls.forEach(ball => ball.reset(audioCtx.currentTime));
             }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             infoElement.style.display = "none";
         }
 
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 2; i++) {
             const btn = document.getElementById(`btn${i}`);
             btn.addEventListener('click', (e) => {
                 e.stopPropagation(); 
                 if (activeBalls[i]) {
                     activeBalls[i].active = !activeBalls[i].active;
-                    if (activeBalls[i].active) {
-                        btn.classList.add("active");
-                    } else {
-                        btn.classList.remove("active");
-                    }
+                    if (activeBalls[i].active) btn.classList.add("active");
+                    else btn.classList.remove("active");
                 }
             });
         }
@@ -353,9 +296,7 @@
             drawOuterCircle();
             
             activeBalls.forEach(ball => {
-                if (audioCtx) {
-                    ball.update(audioCtx.currentTime);
-                }
+                if (audioCtx) ball.update(audioCtx.currentTime);
                 ball.draw();
             });
 
