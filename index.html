@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bumbiņu un Apļa Spēle ar Mūziku</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #0b0214;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #ui-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #score {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        select {
+            padding: 8px 12px;
+            font-size: 16px;
+            background-color: #221435;
+            color: white;
+            border: 2px solid #ff007f;
+            border-radius: 5px;
+            cursor: pointer;
+            outline: none;
+        }
+        select:hover {
+            background-color: #341f52;
+        }
+        canvas {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 0, 128, 0.3);
+            cursor: pointer;
+        }
+        #info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-container">
+        <div id="score">0/10</div>
+        <select id="soundSelect">
+            <option value="melody">🎹 Klavieru melodija (Mainīgas notis)</option>
+            <option value="retro">👾 Retro 8-Bit (Spēļu efekts)</option>
+            <option value="bass">🔊 Zems Bass (Bungas)</option>
+        </select>
+    </div>
+
+    <canvas id="gameCanvas" width="500" height="500"></canvas>
+    <div id="info">Uznirstošais audio aktivizējas pēc pirmā klikšķa uz ekrāna</div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreElement = document.getElementById("score");
+        const soundSelect = document.getElementById("soundSelect");
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const outerRadius = 220; 
+        let rotationAngle = 0; 
+        const rotationSpeed = 0.015; 
+
+        const gravity = 0.2; 
+        let balls = [];
+        let maxBalls = 10;
+        let spawnedBallsCount = 0;
+        let escapedBalls = 0;
+
+        const openingSize = 0.5; 
+
+        // Web Audio API iestatīšana skaņas ģenerēšanai
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Klavieru nošu frekvences (C4 mērogā)
+        const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
+        let noteIndex = 0;
+
+        // Funkcija, kas uztaisa skaņu (pīkstienu) atsitiena brīdī
+        function playHitSound() {
+            initAudio();
+            if (!audioCtx) return;
+
+            // Ja pārlūks audio ir nobloķējis, to vajag atmodināt
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const mode = soundSelect.value;
+
+            if (mode === "melody") {
+                // Skrejošas klavieru notis
+                osc.type = "sine"; 
+                let freq = notes[noteIndex % notes.length];
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                noteIndex++; // Nākamais sitiens būs augstāka/zemāka nota
+                
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+
+            } else if (mode === "retro") {
+                // Ātrs retro lēciens frekvencē
+                osc.type = "square";
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.15);
+                
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+
+            } else if (mode === "bass") {
+                // Zems sitiens (kā sub-bass bumba)
+                osc.type = "triangle";
+                osc.frequency.setValueAtTime(80, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(30, audioCtx.currentTime + 0.3);
+                
+                gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        class Ball {
+            constructor() {
+                this.x = centerX;
+                this.y = centerY - 50;
+                this.vx = (Math.random() - 0.5) * 5;
+                this.vy = (Math.random() - 0.5) * 5;
+                this.radius = 12;
+                this.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+                this.isDead = false;
+            }
+
+            update() {
+                this.vy += gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+
+                let dx = this.x - centerX;
+                let dy = this.y - centerY;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance + this.radius >= outerRadius) {
+                    let ballAngle = Math.atan2(dy, dx);
+                    let normalizedAngle = ballAngle - rotationAngle;
+                    normalizedAngle = Math.atan2(Math.sin(normalizedAngle), Math.cos(normalizedAngle));
+
+                    if (Math.abs(normalizedAngle - Math.PI/2) < openingSize) {
+                        if (!this.isDead) {
+                            escapedBalls++;
+                            scoreElement.innerText = `${escapedBalls}/${maxBalls}`;
+                            this.isDead = true;
+                            setTimeout(spawnBall, 500);
+                        }
+                    } else {
+                        let normalX = dx / distance;
+                        let normalY = dy / distance;
+
+                        let dotProduct = this.vx * normalX + this.vy * normalY;
+                        this.vx -= 2 * dotProduct * normalX;
+                        this.vy -= 2 * dotProduct * normalY;
+
+                        this.x = centerX + normalX * (outerRadius - this.radius - 2);
+                        this.y = centerY + normalY * (outerRadius - this.radius - 2);
+                        
+                        // ATSITIENS! Atskaņojam izvēlēto skaņu
+                        playHitSound();
+                    }
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        function spawnBall() {
+            if (spawnedBallsCount < maxBalls) {
+                balls.push(new Ball());
+                spawnedBallsCount++;
+            }
+        }
+
+        function drawOuterCircle() {
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(rotationAngle);
+
+            ctx.beginPath();
+            ctx.arc(0, 0, outerRadius, Math.PI / 2 + openingSize, Math.PI / 2 - openingSize);
+            ctx.lineWidth = 8;
+            
+            let gradient = ctx.createLinearGradient(-outerRadius, 0, outerRadius, 0);
+            gradient.addColorStop(0, '#00ffcc');
+            gradient.addColorStop(0.5, '#ff007f');
+            gradient.addColorStop(1, '#ffcc00');
+            ctx.strokeStyle = gradient;
+            ctx.stroke();
+
+            const spikeCount = 40;
+            ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+            for (let i = 0; i < spikeCount; i++) {
+                let angle = (i / spikeCount) * Math.PI * 2;
+                if (Math.abs(angle - Math.PI/2) < openingSize) continue;
+
+                ctx.save();
+                ctx.rotate(angle);
+                ctx.beginPath();
+                ctx.moveTo(0, -outerRadius + 8);
+                ctx.lineTo(-10, -outerRadius + 25);
+                ctx.lineTo(10, -outerRadius + 25);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+
+            ctx.restore();
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            rotationAngle += rotationSpeed;
+            drawOuterCircle();
+
+            balls = balls.filter(ball => !ball.isDead);
+            balls.forEach(ball => {
+                ball.update();
+                ball.draw();
+            });
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Aktivizējam audio arī tad, ja lietotājs noklikšķina jebkur uz lapas
+        window.addEventListener('click', initAudio);
+
+        spawnBall();
+        gameLoop();
+    </script>
+</body>
+</html>
