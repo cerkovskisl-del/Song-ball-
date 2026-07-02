@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfekta Ritma Dziesmu Spēle</title>
+    <title>Dziesmas Ritma Fizika</title>
     <style>
         body {
             margin: 0;
-            background-color: #060112;
+            background-color: #05010d;
             color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: monospace;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -22,57 +22,46 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 25px;
+            gap: 10px;
+            margin-bottom: 20px;
         }
         select {
-            padding: 10px 16px;
+            padding: 8px 12px;
             font-size: 16px;
-            font-weight: bold;
             background-color: #1a0933;
             color: #00ffcc;
             border: 2px solid #ff007f;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
             outline: none;
-            box-shadow: 0 0 10px rgba(255, 0, 127, 0.2);
-        }
-        select:hover {
-            background-color: #29104d;
         }
         canvas {
             border: 2px solid rgba(255, 255, 255, 0.05);
             border-radius: 50%;
             box-shadow: 0 0 40px rgba(0, 255, 204, 0.2);
-            background-color: #020005;
+            background-color: #010003;
         }
         #info {
             margin-top: 15px;
             font-size: 14px;
             color: #ff007f;
             font-weight: bold;
-            letter-spacing: 1px;
             animation: blink 1.2s infinite;
         }
-        @keyframes blink {
-            0% { opacity: 0.3; }
-            50% { opacity: 1; }
-            100% { opacity: 0.3; }
-        }
+        @keyframes blink { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
     </style>
 </head>
 <body>
 
     <div id="ui-container">
         <select id="songSelect">
-            <option value="axelf">🎵 Crazy Frog / Axel F</option>
-            <option value="starwars">🌌 Star Wars Main Theme</option>
-            <option value="mario">🍄 Super Mario Bros Theme</option>
+            <option value="axelf">🎵 Crazy Frog / Axel F (Mainīgs ritms)</option>
+            <option value="megalovania">💀 Undertale - Megalovania (Ātrais ritms)</option>
         </select>
     </div>
 
     <canvas id="gameCanvas" width="500" height="500"></canvas>
-    <div id="info">🎧 UZKLIKŠĶINI UZ EKRĀNA, LAI SĀKTU DZIESMU</div>
+    <div id="info">KLIKŠĶINI UZ EKRĀNA, LAI IESLĒGTU</div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
@@ -83,43 +72,38 @@
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const outerRadius = 220; 
-        
+
         let audioCtx = null;
-        let startTime = 0;
         let noteIndex = 0;
         let flashOpacity = 0;
+        
+        let noteStartTime = 0;
+        let currentNoteDuration = 0.25; // Sākuma nots ilgums sekundēs
 
-        // Īsto dziesmu dati (Frekvence un relatīvais ritma ātrums BPM)
-        const songData = {
-            axelf: {
-                bpm: 125,
-                notes: [
-                    293.66, 349.23, 293.66, 293.66, 392.00, 293.66, 261.63,
-                    293.66, 440.00, 293.66, 293.66, 466.16, 440.00, 349.23,
-                    293.66, 440.00, 587.33, 293.66, 261.63, 261.63, 349.23, 293.66
-                ]
-            },
-            starwars: {
-                bpm: 110,
-                notes: [
-                    220.00, 220.00, 220.00, 293.66, 440.00, 392.00, 349.23, 329.63, 587.33, 440.00,
-                    392.00, 349.23, 329.63, 587.33, 440.00, 392.00, 349.23, 392.00, 329.63
-                ]
-            },
-            mario: {
-                bpm: 130,
-                notes: [
-                    659.25, 659.25, 659.25, 523.25, 659.25, 783.99, 392.00,
-                    523.25, 392.00, 329.63, 440.00, 493.88, 466.16, 440.00,
-                    392.00, 659.25, 783.99, 880.00, 698.46, 783.99, 659.25
-                ]
-            }
+        // Katrai notij ir frekvence (Hz) un ilgums (0.5 = parasta nota, 0.25 = ātra nota, 1.0 = lēna/gara nota)
+        const songs = {
+            axelf: [
+                { f: 293.66, d: 0.4 }, { f: 349.23, d: 0.4 }, { f: 293.66, d: 0.2 }, { f: 293.66, d: 0.2 }, // lēni, tad ātri
+                { f: 392.00, d: 0.4 }, { f: 293.66, d: 0.4 }, { f: 261.63, d: 0.4 },
+                { f: 293.66, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 293.66, d: 0.2 }, { f: 293.66, d: 0.2 },
+                { f: 466.16, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 349.23, d: 0.4 },
+                { f: 293.66, d: 0.3 }, { f: 440.00, d: 0.3 }, { f: 587.33, d: 0.3 }, { f: 293.66, d: 0.2 }, 
+                { f: 261.63, d: 0.2 }, { f: 261.63, d: 0.4 }, { f: 349.23, d: 0.4 }, { f: 293.66, d: 0.8 } // pēdējā nota gara (lēna)
+            ],
+            megalovania: [
+                { f: 293.66, d: 0.15 }, { f: 293.66, d: 0.15 }, { f: 587.33, d: 0.3 }, { f: 440.00, d: 0.45 },
+                { f: 415.30, d: 0.3 }, { f: 392.00, d: 0.3 }, { f: 349.23, d: 0.3 }, { f: 293.66, d: 0.15 }, 
+                { f: 349.23, d: 0.15 }, { f: 392.00, d: 0.15 }
+            ]
         };
 
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                startTime = audioCtx.currentTime;
+                noteStartTime = audioCtx.currentTime;
+                // Uzstādām pirmās nots ilgumu bumbiņai
+                const currentSong = songs[songSelect.value];
+                currentNoteDuration = currentSong[0].d;
             }
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
@@ -127,40 +111,42 @@
             infoElement.style.display = "none";
         }
 
-        // Kad nomaina dziesmu, nometam notis uz sākumu
         songSelect.addEventListener('change', () => {
             noteIndex = 0;
-            if (audioCtx) startTime = audioCtx.currentTime;
+            if (audioCtx) {
+                noteStartTime = audioCtx.currentTime;
+                currentNoteDuration = songs[songSelect.value][0].d;
+            }
         });
 
-        function playNextNote() {
+        function playHitNote() {
             if (!audioCtx) return;
 
-            const currentKey = songSelect.value;
-            const currentSong = songData[currentKey].notes;
-
-            // Paņemam pareizo noti no saraksta
-            let freq = currentSong[noteIndex % currentSong.length];
-            noteIndex++;
-
+            const currentSong = songs[songSelect.value];
+            let note = currentSong[noteIndex % currentSong.length];
+            
+            // Spēlējam pašreizējo noti
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
-            // "Triangle" vilnis perfekti atdarina tos sintezatorus no video shorts
             osc.type = "triangle";
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(note.f, audioCtx.currentTime);
 
-            // Skaņas dzēšana (uzreiz skaļi, tad smuki nodziest)
             gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + note.d);
 
             osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
+            osc.stop(audioCtx.currentTime + note.d);
             
-            // Ritma gaismas efekts aplim
-            flashOpacity = 0.25;
+            flashOpacity = 0.35;
+
+            // PĀRSLĒDZAM UZ NĀKAMO NOTI un pasakām bumbiņai, cik ilga tā būs!
+            noteIndex++;
+            let nextNote = currentSong[noteIndex % currentSong.length];
+            currentNoteDuration = nextNote.d; // Šis maina bumbiņas ātrumu nākamajam lēcienam
+            noteStartTime = audioCtx.currentTime;
         }
 
         class RhythmBall {
@@ -171,28 +157,31 @@
                 this.lastHitSide = 0;
             }
 
-            update(elapsedTime) {
-                const currentKey = songSelect.value;
-                const bpm = songData[currentKey].bpm;
-                const beatDuration = 60 / bpm; // Sekundes starp sitieniem
+            update(currentTime) {
+                if (!audioCtx) return;
 
-                // Matemātiski sinhronizējam kustību pa vertikālo asi ar dziesmas tempu
-                let frequency = Math.PI / beatDuration;
-                let positionFactor = Math.cos(frequency * elapsedTime);
-
-                this.x = centerX; // Paliek centrā pa horizontāli
-                this.y = centerY + positionFactor * this.maxTravel; // Kustas uz augšu un leju
-
-                // Fiksējam brīdi, kad bumbiņa pieskaras augšai vai apakšai
-                let currentSide = Math.sign(Math.round(positionFactor * 100));
-                if (currentSide !== this.lastHitSide && Math.abs(positionFactor) > 0.98) {
-                    playNextNote();
-                    this.lastHitSide = currentSide;
-                }
+                // Aprēķinām, cik daudz laika ir pagājis kopš pašreizējās notis sākuma
+                let timePassed = currentTime - noteStartTime;
                 
-                // Kad bumbiņa ir pa vidu, atiestatām atsitiena detektoru
-                if (Math.abs(positionFactor) < 0.2) {
-                    this.lastHitSide = 0;
+                // Procenti no notis ilguma (no 0 līdz 1)
+                let progress = timePassed / currentNoteDuration;
+                if (progress > 1) progress = 1;
+
+                // Izmantojam kosinusu, lai bumbiņa smuki lēkātu uz priekšu un atpakaļ
+                // progress * Math.PI liek bumbiņai tieši vienas notis laikā aizlidot no viena gala līdz otram
+                let positionFactor;
+                if (noteIndex % 2 === 0) {
+                    positionFactor = Math.cos(progress * Math.PI); // Kustība uz leju
+                } else {
+                    positionFactor = -Math.cos(progress * Math.PI); // Kustība uz augšu
+                }
+
+                this.x = centerX;
+                this.y = centerY + positionFactor * this.maxTravel;
+
+                // Ja laiks šai notij ir beidzies, bumbiņa ir nonākusi galā -> sitiens!
+                if (progress >= 1) {
+                    playHitNote();
                 }
             }
 
@@ -211,18 +200,14 @@
         const ball = new RhythmBall();
 
         function drawOuterCircle() {
-            // Pilns aplis bez šķirbām
             ctx.beginPath();
             ctx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
             ctx.lineWidth = 6;
-            
-            // Aplis maina krāsu un uzplaiksnī ritmā
             ctx.strokeStyle = `rgba(255, 0, 127, ${0.3 + flashOpacity})`;
             ctx.stroke();
 
-            if (flashOpacity > 0) flashOpacity -= 0.015;
+            if (flashOpacity > 0) flashOpacity -= 0.02;
 
-            // Smailes vizuālajam dizainam
             const spikeCount = 50;
             ctx.fillStyle = "rgba(255, 0, 127, 0.1)";
             for (let i = 0; i < spikeCount; i++) {
@@ -243,10 +228,11 @@
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            let elapsedTime = audioCtx ? audioCtx.currentTime - startTime : 0;
-
             drawOuterCircle();
-            ball.update(elapsedTime);
+            
+            if (audioCtx) {
+                ball.update(audioCtx.currentTime);
+            }
             ball.draw();
 
             requestAnimationFrame(gameLoop);
