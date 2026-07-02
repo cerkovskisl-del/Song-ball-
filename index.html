@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Bumbiņu Ritma Fizika</title>
+    <title>Ritma Mikseris - Daudz bumbas</title>
     <style>
         body {
             margin: 0;
@@ -22,8 +22,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 15px;
+            margin-bottom: 15px;
         }
         select {
             padding: 10px 16px;
@@ -36,14 +36,34 @@
             cursor: pointer;
             outline: none;
         }
+        #controls {
+            display: flex;
+            gap: 10px;
+        }
+        .toggle-btn {
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            background-color: #220b40;
+            border: 2px solid #00ffcc;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .toggle-btn.active {
+            background-color: #00ffcc;
+            color: #04010a;
+            box-shadow: 0 0 10px #00ffcc;
+        }
         canvas {
             border: 2px solid rgba(255, 255, 255, 0.05);
             border-radius: 50%;
-            box-shadow: 0 0 40px rgba(0, 255, 204, 0.25);
+            box-shadow: 0 0 40px rgba(0, 255, 204, 0.15);
             background-color: #010003;
         }
         #info {
-            margin-top: 15px;
+            margin-top: 10px;
             font-size: 14px;
             color: #ff007f;
             font-weight: bold;
@@ -56,14 +76,20 @@
 
     <div id="ui-container">
         <select id="songSelect">
-            <option value="axelf">🎵 Crazy Frog (Zaļā: Sintezators | Rozā: Basi)</option>
-            <option value="wewillrockyou">🎸 Queen - We Will Rock You (Zaļā: Solo | Rozā: Bungas)</option>
-            <option value="megalovania">💀 Megalovania (Zaļā: Melodija | Rozā: Ātrais bīts)</option>
+            <option value="mega_mix">🎛️ Mega Ritma Salikums (4 Celiņi)</option>
+            <option value="tetris_remix">🧱 Tetris Kompleksais Mikseris (3 Celiņi)</option>
         </select>
+
+        <div id="controls">
+            <button class="toggle-btn active" id="btn0">🟢 1. Bumba</button>
+            <button class="toggle-btn active" id="btn1">🔵 2. Bumba</button>
+            <button class="toggle-btn active" id="btn2">🟡 3. Bumba</button>
+            <button class="toggle-btn active" id="btn3">🔴 4. Bumba</button>
+        </div>
     </div>
 
     <canvas id="gameCanvas" width="500" height="500"></canvas>
-    <div id="info">KLIKŠĶINI UZ EKRĀNA, LAI IESLĒGTU</div>
+    <div id="info">KLIKŠĶINI UZ EKRĀNA, LAI IESLĒGTU SKAŅU</div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
@@ -78,69 +104,76 @@
         let audioCtx = null;
         let flashOpacity = 0;
 
-        // Katrai dziesmai ir divi neatkarīgi masīvi: track1 un track2
+        // Dziesmu struktūra (katram celiņam sava instruments/ritms/frekvence)
         const songs = {
-            axelf: {
-                track1: [ // Sintezatora melodija
-                    { f: 293.66, d: 0.4 }, { f: 349.23, d: 0.4 }, { f: 293.66, d: 0.2 }, { f: 293.66, d: 0.2 },
-                    { f: 392.00, d: 0.4 }, { f: 293.66, d: 0.4 }, { f: 261.63, d: 0.4 },
-                    { f: 293.66, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 293.66, d: 0.2 }, { f: 293.66, d: 0.2 },
-                    { f: 466.16, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 349.23, d: 0.4 }
-                ],
-                track2: [ // Pavadošais basu ritms
-                    { f: 110.00, d: 0.8 }, { f: 110.00, d: 0.8 }, { f: 146.83, d: 0.8 }, { f: 146.83, d: 0.8 },
-                    { f: 130.81, d: 0.8 }, { f: 164.81, d: 0.8 }
-                ]
-            },
-            wewillrockyou: {
-                track1: [ // Ģitāras / Vokāla daļa
-                    { f: 0.00,   d: 1.4 }, { f: 293.00, d: 0.35 }, { f: 261.00, d: 0.35 }, 
-                    { f: 196.00, d: 0.7 }, { f: 220.00, d: 0.7 }
-                ],
-                track2: [ // Slavenais bungu ritms (Bums-Bums-Čiks)
-                    { f: 80.00, d: 0.35 }, { f: 80.00, d: 0.35 }, { f: 150.00, d: 0.7 },
-                    { f: 80.00, d: 0.35 }, { f: 80.00, d: 0.35 }, { f: 150.00, d: 0.7 }
-                ]
-            },
-            megalovania: {
-                track1: [ // Pamata tēma
-                    { f: 293.66, d: 0.3 }, { f: 293.66, d: 0.3 }, { f: 587.33, d: 0.6 }, { f: 440.00, d: 0.9 },
-                    { f: 415.30, d: 0.6 }, { f: 392.00, d: 0.6 }, { f: 349.23, d: 0.6 }
-                ],
-                track2: [ // Ātrais fona temps
-                    { f: 100.00, d: 0.15 }, { f: 100.00, d: 0.15 }, { f: 100.00, d: 0.15 }, { f: 100.00, d: 0.15 },
-                    { f: 120.00, d: 0.15 }, { f: 120.00, d: 0.15 }, { f: 120.00, d: 0.15 }, { f: 120.00, d: 0.15 }
-                ]
-            }
+            mega_mix: [
+                { // 1. Bumba: Augstā melodija (Klavieres)
+                    type: "triangle", color: "#00ffcc", offsetX: -60,
+                    notes: [{f: 523.25, d: 0.3}, {f: 587.33, d: 0.3}, {f: 659.25, d: 0.3}, {f: 783.99, d: 0.6}]
+                },
+                { // 2. Bumba: Vidējā harmonija (Sintezators)
+                    type: "sawtooth", color: "#0077ff", offsetX: -20,
+                    notes: [{f: 261.63, d: 0.6}, {f: 329.63, d: 0.6}, {f: 392.00, d: 0.6}, {f: 329.63, d: 0.6}]
+                },
+                { // 3. Bumba: Ātrais fona ritms (Trik-Trik)
+                    type: "sine", color: "#ffcc00", offsetX: 20,
+                    notes: [{f: 800.00, d: 0.15}, {f: 0.00, d: 0.15}, {f: 600.00, d: 0.15}, {f: 0.00, d: 0.15}]
+                },
+                { // 4. Bumba: Smagais bāzes bīts (Bungas/Basi)
+                    type: "sine", color: "#ff0055", offsetX: 60,
+                    notes: [{f: 70.00, d: 0.45}, {f: 70.00, d: 0.45}, {f: 120.00, d: 0.3}]
+                }
+            ],
+            tetris_remix: [
+                { // 1. Bumba: Tetris pamata tēma
+                    type: "triangle", color: "#00ffcc", offsetX: -40,
+                    notes: [{f: 659.25, d: 0.4}, {f: 493.88, d: 0.2}, {f: 523.25, d: 0.2}, {f: 587.33, d: 0.4}]
+                },
+                { // 2. Bumba: Stabilais bass pa apakšu
+                    type: "sine", color: "#0077ff", offsetX: 0,
+                    notes: [{f: 110.00, d: 0.4}, {f: 110.00, d: 0.4}, {f: 146.83, d: 0.4}]
+                },
+                { // 3. Bumba: Akcenti/Bungas
+                    type: "sine", color: "#ff0055", offsetX: 40,
+                    notes: [{f: 80.00, d: 0.2}, {f: 0.00, d: 0.2}, { f: 180.00, d: 0.4}]
+                }
+            ]
         };
 
         class RhythmBall {
-            constructor(offsetX, color, type) {
-                this.radius = 12;
+            constructor(config) {
+                this.radius = 11;
                 this.maxTravel = outerRadius - this.radius - 4;
-                this.color = color;
-                this.offsetX = offsetX; // Nobīde no centra, lai bumbiņas nesaliptu
-                this.type = type; // "sine" vai "triangle" sintezatoram
                 
+                this.type = config.type;
+                this.color = config.color;
+                this.offsetX = config.offsetX;
+                this.notes = config.notes;
+                
+                this.active = true; // Vai bumba šobrīd ir ieslēgta
                 this.noteIndex = 0;
                 this.noteStartTime = 0;
-                this.currentNoteDuration = 0.5;
+                this.currentNoteDuration = 0.3;
+                
+                this.x = centerX + this.offsetX;
+                this.y = centerY;
             }
 
-            reset(currentTime, duration) {
+            reset(currentTime) {
                 this.noteIndex = 0;
                 this.noteStartTime = currentTime;
-                this.currentNoteDuration = duration;
+                if(this.notes && this.notes.length > 0) {
+                    this.currentNoteDuration = this.notes[0].d;
+                }
             }
 
-            update(currentTime, trackData) {
-                if (!audioCtx) return;
+            update(currentTime) {
+                if (!audioCtx || !this.notes || this.notes.length === 0) return;
 
                 let timePassed = currentTime - this.noteStartTime;
                 let progress = timePassed / this.currentNoteDuration;
                 if (progress > 1) progress = 1;
 
-                // Aprēķina kustību augšup/lejup
                 let positionFactor;
                 if (this.noteIndex % 2 === 0) {
                     positionFactor = Math.cos(progress * Math.PI);
@@ -151,16 +184,16 @@
                 this.x = centerX + this.offsetX;
                 this.y = centerY + positionFactor * this.maxTravel;
 
-                // Kad sasniegts malas punkts, atskaņo noti un pārslēdzas uz nākamo
                 if (progress >= 1) {
-                    this.playNote(trackData);
+                    this.playNote();
                 }
             }
 
-            playNote(trackData) {
-                let note = trackData[this.noteIndex % trackData.length];
+            playNote() {
+                let note = this.notes[this.noteIndex % this.notes.length];
 
-                if (note.f > 0) {
+                // Skaņu spēlē tikai tad, ja bumba ir AKTIIVA un frekvence virs 0
+                if (this.active && note.f > 0 && audioCtx) {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
                     osc.connect(gain);
@@ -169,17 +202,19 @@
                     osc.type = this.type;
                     osc.frequency.setValueAtTime(note.f, audioCtx.currentTime);
 
-                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    // Maigāks skaļums, jo skan reizē daudzi instrumenti
+                    let vol = this.type === "sine" ? 0.4 : 0.18;
+                    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + note.d);
 
                     osc.start();
                     osc.stop(audioCtx.currentTime + note.d);
                     
-                    flashOpacity = 0.35;
+                    flashOpacity = 0.25;
                 }
 
                 this.noteIndex++;
-                let nextNote = trackData[this.noteIndex % trackData.length];
+                let nextNote = this.notes[this.noteIndex % this.notes.length];
                 this.currentNoteDuration = nextNote.d;
                 this.noteStartTime = audioCtx.currentTime;
             }
@@ -187,25 +222,55 @@
             draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = this.color;
-                ctx.fill();
+                
+                // Ja bumba izslēgta, uzzīmējam to caurspīdīgu
+                if (this.active) {
+                    ctx.fillStyle = this.color;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = this.color;
+                    ctx.fill();
+                } else {
+                    ctx.strokeStyle = this.color;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
                 ctx.closePath();
                 ctx.shadowBlur = 0;
             }
         }
 
-        // Izveidojam divas bumbiņas ar nobīdi pa kreisi (-40px) un pa labi (+40px)
-        const ball1 = new RhythmBall(-40, "#00ffcc", "triangle"); // Melodija
-        const ball2 = new RhythmBall(40, "#ff007f", "sine");     // Bungi / Basi
+        let activeBalls = [];
+
+        function loadSong() {
+            activeBalls = [];
+            const ballConfigs = songs[songSelect.value];
+            
+            ballConfigs.forEach((config, index) => {
+                const newBall = new RhythmBall(config);
+                if (audioCtx) {
+                    newBall.reset(audioCtx.currentTime);
+                }
+                activeBalls.push(newBall);
+                
+                // Parādām pogu un atjaunojam tās stāvokli
+                const btn = document.getElementById(`btn${index}`);
+                if (btn) {
+                    btn.style.display = "inline-block";
+                    btn.classList.add("active");
+                }
+            });
+
+            // Paslēpjam pogas tam bumbām, kuru šajā dziesmā nav
+            for(let i = ballConfigs.length; i < 4; i++) {
+                const btn = document.getElementById(`btn${i}`);
+                if (btn) btn.style.style.display = "none";
+            }
+        }
 
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const currentSong = songs[songSelect.value];
-                ball1.reset(audioCtx.currentTime, currentSong.track1[0].d);
-                ball2.reset(audioCtx.currentTime, currentSong.track2[0].d);
+                activeBalls.forEach(ball => ball.reset(audioCtx.currentTime));
             }
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
@@ -213,36 +278,43 @@
             infoElement.style.display = "none";
         }
 
-        songSelect.addEventListener('change', () => {
-            if (audioCtx) {
-                const currentSong = songs[songSelect.value];
-                ball1.reset(audioCtx.currentTime, currentSong.track1[0].d);
-                ball2.reset(audioCtx.currentTime, currentSong.track2[0].d);
-            }
-        });
+        // Manuālā pogu slēgšana iekšā / ārā
+        for (let i = 0; i < 4; i++) {
+            const btn = document.getElementById(`btn${i}`);
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Lai klikšķis neizsauktu initAudio pa tukšo
+                if (activeBalls[i]) {
+                    activeBalls[i].active = !activeBalls[i].active;
+                    if (activeBalls[i].active) {
+                        btn.classList.add("active");
+                    } else {
+                        btn.classList.remove("active");
+                    }
+                }
+            });
+        }
+
+        songSelect.addEventListener('change', loadSong);
 
         function drawOuterCircle() {
             ctx.beginPath();
             ctx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
-            ctx.lineWidth = 6;
-            ctx.strokeStyle = `rgba(255, 255, 255, ${0.15 + flashOpacity})`;
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 + flashOpacity})`;
             ctx.stroke();
-
-            if (flashOpacity > 0) flashOpacity -= 0.02;
+            if (flashOpacity > 0) flashOpacity -= 0.01;
         }
 
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawOuterCircle();
             
-            if (audioCtx) {
-                const currentSong = songs[songSelect.value];
-                ball1.update(audioCtx.currentTime, currentSong.track1);
-                ball2.update(audioCtx.currentTime, currentSong.track2);
-            }
-            
-            ball1.draw();
-            ball2.draw();
+            activeBalls.forEach(ball => {
+                if (audioCtx) {
+                    ball.update(audioCtx.currentTime);
+                }
+                ball.draw();
+            });
 
             requestAnimationFrame(gameLoop);
         }
@@ -250,6 +322,8 @@
         window.addEventListener('click', initAudio);
         window.addEventListener('touchstart', initAudio);
 
+        // Ielādējam pirmo dziesmu uzreiz startā
+        loadSong();
         gameLoop();
     </script>
 </body>
