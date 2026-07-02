@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dziesmas Ritma Fizika</title>
+    <title>Mega Dziesmu Ritma Fizika</title>
     <style>
         body {
             margin: 0;
-            background-color: #05010d;
+            background-color: #04010a;
             color: white;
             font-family: monospace;
             display: flex;
@@ -26,19 +26,20 @@
             margin-bottom: 20px;
         }
         select {
-            padding: 8px 12px;
+            padding: 10px 16px;
             font-size: 16px;
-            background-color: #1a0933;
+            font-weight: bold;
+            background-color: #120526;
             color: #00ffcc;
             border: 2px solid #ff007f;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
             outline: none;
         }
         canvas {
             border: 2px solid rgba(255, 255, 255, 0.05);
             border-radius: 50%;
-            box-shadow: 0 0 40px rgba(0, 255, 204, 0.2);
+            box-shadow: 0 0 40px rgba(0, 255, 204, 0.25);
             background-color: #010003;
         }
         #info {
@@ -55,8 +56,16 @@
 
     <div id="ui-container">
         <select id="songSelect">
-            <option value="axelf">🎵 Crazy Frog / Axel F (Mainīgs ritms)</option>
-            <option value="megalovania">💀 Undertale - Megalovania (Ātrais ritms)</option>
+            <option value="axelf">🎵 Crazy Frog / Axel F</option>
+            <option value="megalovania">💀 Undertale - Megalovania</option>
+            <option value="wewillrockyou">🎸 Queen - We Will Rock You</option>
+            <option value="smells">⚡ Nirvana - Smells Like Teen Spirit</option>
+            <option value="tetris">🧱 Tetris Main Theme</option>
+            <option value="mario">🍄 Super Mario Bros</option>
+            <option value="coffin">⚰️ Coffin Dance (Astronomia)</option>
+            <option value="starwars">🌌 Star Wars Theme</option>
+            <option value="jingle">❄️ Jingle Bells (Ziemassvētki)</option>
+            <option value="beats">🥁 Tik Tok Bass Beat (Tikai Ritms)</option>
         </select>
     </div>
 
@@ -78,22 +87,66 @@
         let flashOpacity = 0;
         
         let noteStartTime = 0;
-        let currentNoteDuration = 0.25; // Sākuma nots ilgums sekundēs
+        let currentNoteDuration = 0.25;
 
-        // Katrai notij ir frekvence (Hz) un ilgums (0.5 = parasta nota, 0.25 = ātra nota, 1.0 = lēna/gara nota)
+        // 10 dziesmu datu bāze: f = frekvence (Hz), d = ilgums (sekundēs)
         const songs = {
             axelf: [
-                { f: 293.66, d: 0.4 }, { f: 349.23, d: 0.4 }, { f: 293.66, d: 0.2 }, { f: 293.66, d: 0.2 }, // lēni, tad ātri
+                { f: 293.66, d: 0.4 }, { f: 349.23, d: 0.4 }, { f: 293.66, d: 0.2 }, { f: 293.66, d: 0.2 },
                 { f: 392.00, d: 0.4 }, { f: 293.66, d: 0.4 }, { f: 261.63, d: 0.4 },
                 { f: 293.66, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 293.66, d: 0.2 }, { f: 293.66, d: 0.2 },
                 { f: 466.16, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 349.23, d: 0.4 },
                 { f: 293.66, d: 0.3 }, { f: 440.00, d: 0.3 }, { f: 587.33, d: 0.3 }, { f: 293.66, d: 0.2 }, 
-                { f: 261.63, d: 0.2 }, { f: 261.63, d: 0.4 }, { f: 349.23, d: 0.4 }, { f: 293.66, d: 0.8 } // pēdējā nota gara (lēna)
+                { f: 261.63, d: 0.2 }, { f: 261.63, d: 0.4 }, { f: 349.23, d: 0.4 }, { f: 293.66, d: 0.8 }
             ],
             megalovania: [
                 { f: 293.66, d: 0.15 }, { f: 293.66, d: 0.15 }, { f: 587.33, d: 0.3 }, { f: 440.00, d: 0.45 },
                 { f: 415.30, d: 0.3 }, { f: 392.00, d: 0.3 }, { f: 349.23, d: 0.3 }, { f: 293.66, d: 0.15 }, 
                 { f: 349.23, d: 0.15 }, { f: 392.00, d: 0.15 }
+            ],
+            wewillrockyou: [
+                { f: 90.00,  d: 0.35 }, { f: 90.00,  d: 0.35 }, { f: 220.00, d: 0.7 },
+                { f: 0.00,   d: 0.35 },
+                { f: 90.00,  d: 0.35 }, { f: 90.00,  d: 0.35 }, { f: 220.00, d: 0.7 },
+                { f: 293.00, d: 0.35 }, { f: 261.00, d: 0.35 }, { f: 196.00, d: 0.7 }
+            ],
+            smells: [
+                { f: 146.83, d: 0.25 }, { f: 146.83, d: 0.25 }, { f: 0.00, d: 0.15 }, { f: 146.83, d: 0.15 },
+                { f: 196.00, d: 0.25 }, { f: 196.00, d: 0.25 }, { f: 0.00, d: 0.15 },
+                { f: 164.81, d: 0.25 }, { f: 164.81, d: 0.25 }, { f: 0.00, d: 0.15 }, { f: 164.81, d: 0.15 },
+                { f: 220.00, d: 0.25 }, { f: 220.00, d: 0.25 }, { f: 0.00, d: 0.15 }
+            ],
+            tetris: [
+                { f: 659.25, d: 0.4 }, { f: 493.88, d: 0.2 }, { f: 523.25, d: 0.2 }, { f: 587.33, d: 0.4 },
+                { f: 523.25, d: 0.2 }, { f: 493.88, d: 0.2 }, { f: 440.00, d: 0.4 }, { f: 440.00, d: 0.2 },
+                { f: 523.25, d: 0.2 }, { f: 659.25, d: 0.4 }, { f: 587.33, d: 0.2 }, { f: 523.25, d: 0.2 },
+                { f: 493.88, d: 0.6 }, { f: 523.25, d: 0.2 }, { f: 587.33, d: 0.4 }, { f: 659.25, d: 0.4 },
+                { f: 523.25, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 440.00, d: 0.4 }
+            ],
+            mario: [
+                { f: 659.25, d: 0.18 }, { f: 659.25, d: 0.18 }, { f: 0.00, d: 0.18 }, { f: 659.25, d: 0.18 }, 
+                { f: 0.00, d: 0.18 }, { f: 523.25, d: 0.18 }, { f: 659.25, d: 0.18 }, { f: 0.00, d: 0.18 }, 
+                { f: 783.99, d: 0.18 }, { f: 0.00, d: 0.36 }, { f: 392.00, d: 0.18 }
+            ],
+            coffin: [
+                { f: 440.00, d: 0.2 }, { f: 440.00, d: 0.2 }, { f: 523.25, d: 0.2 }, { f: 493.88, d: 0.2 },
+                { f: 440.00, d: 0.2 }, { f: 392.00, d: 0.2 }, { f: 349.23, d: 0.2 }, { f: 392.00, d: 0.2 },
+                { f: 440.00, d: 0.2 }, { f: 440.00, d: 0.2 }, { f: 440.00, d: 0.2 }, { f: 440.00, d: 0.2 }
+            ],
+            starwars: [
+                { f: 220.00, d: 0.4 }, { f: 220.00, d: 0.4 }, { f: 220.00, d: 0.4 }, 
+                { f: 293.66, d: 0.6 }, { f: 440.00, d: 0.2 }, { f: 392.00, d: 0.4 }, 
+                { f: 349.23, d: 0.4 }, { f: 329.63, d: 0.4 }, { f: 587.33, d: 0.6 }, { f: 440.00, d: 0.2 }
+            ],
+            jingle: [
+                { f: 329.63, d: 0.3 }, { f: 329.63, d: 0.3 }, { f: 329.63, d: 0.6 },
+                { f: 329.63, d: 0.3 }, { f: 329.63, d: 0.3 }, { f: 329.63, d: 0.6 },
+                { f: 329.63, d: 0.3 }, { f: 392.00, d: 0.3 }, { f: 261.63, d: 0.45 }, { f: 293.66, d: 0.15 },
+                { f: 329.63, d: 1.0 }
+            ],
+            beats: [
+                { f: 80.00, d: 0.2 }, { f: 80.00, d: 0.2 }, { f: 150.00, d: 0.4 },
+                { f: 80.00, d: 0.1 }, { f: 80.00, d: 0.1 }, { f: 80.00, d: 0.2 }, { f: 150.00, d: 0.4 }
             ]
         };
 
@@ -101,9 +154,7 @@
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 noteStartTime = audioCtx.currentTime;
-                // Uzstādām pirmās nots ilgumu bumbiņai
-                const currentSong = songs[songSelect.value];
-                currentNoteDuration = currentSong[0].d;
+                currentNoteDuration = songs[songSelect.value][0].d;
             }
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
@@ -125,27 +176,29 @@
             const currentSong = songs[songSelect.value];
             let note = currentSong[noteIndex % currentSong.length];
             
-            // Spēlējam pašreizējo noti
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            if (note.f > 0) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
 
-            osc.type = "triangle";
-            osc.frequency.setValueAtTime(note.f, audioCtx.currentTime);
+                // Zemie bīti izmanto "sine" maigo skaņu, augstās notis - "triangle" sintezatoru
+                osc.type = note.f < 150 ? "sine" : "triangle";
+                osc.frequency.setValueAtTime(note.f, audioCtx.currentTime);
 
-            gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + note.d);
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + note.d);
 
-            osc.start();
-            osc.stop(audioCtx.currentTime + note.d);
-            
-            flashOpacity = 0.35;
+                osc.start();
+                osc.stop(audioCtx.currentTime + note.d);
+                
+                flashOpacity = 0.35;
+            }
 
-            // PĀRSLĒDZAM UZ NĀKAMO NOTI un pasakām bumbiņai, cik ilga tā būs!
+            // Pārejam uz nākamo noti un nosakām tās ilgumu bumbiņai
             noteIndex++;
             let nextNote = currentSong[noteIndex % currentSong.length];
-            currentNoteDuration = nextNote.d; // Šis maina bumbiņas ātrumu nākamajam lēcienam
+            currentNoteDuration = nextNote.d; 
             noteStartTime = audioCtx.currentTime;
         }
 
@@ -154,32 +207,26 @@
                 this.radius = 12;
                 this.maxTravel = outerRadius - this.radius - 4;
                 this.color = "#00ffcc";
-                this.lastHitSide = 0;
             }
 
             update(currentTime) {
                 if (!audioCtx) return;
 
-                // Aprēķinām, cik daudz laika ir pagājis kopš pašreizējās notis sākuma
                 let timePassed = currentTime - noteStartTime;
-                
-                // Procenti no notis ilguma (no 0 līdz 1)
                 let progress = timePassed / currentNoteDuration;
                 if (progress > 1) progress = 1;
 
-                // Izmantojam kosinusu, lai bumbiņa smuki lēkātu uz priekšu un atpakaļ
-                // progress * Math.PI liek bumbiņai tieši vienas notis laikā aizlidot no viena gala līdz otram
+                // Mainām virzienu (augšā/lejā) katrā atsitienā
                 let positionFactor;
                 if (noteIndex % 2 === 0) {
-                    positionFactor = Math.cos(progress * Math.PI); // Kustība uz leju
+                    positionFactor = Math.cos(progress * Math.PI);
                 } else {
-                    positionFactor = -Math.cos(progress * Math.PI); // Kustība uz augšu
+                    positionFactor = -Math.cos(progress * Math.PI);
                 }
 
                 this.x = centerX;
                 this.y = centerY + positionFactor * this.maxTravel;
 
-                // Ja laiks šai notij ir beidzies, bumbiņa ir nonākusi galā -> sitiens!
                 if (progress >= 1) {
                     playHitNote();
                 }
@@ -227,7 +274,6 @@
 
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
             drawOuterCircle();
             
             if (audioCtx) {
