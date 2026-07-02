@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Garās Dziesmas - Ritma Fizika</title>
+    <title>Multi-Bumbiņu Ritma Fizika</title>
     <style>
         body {
             margin: 0;
@@ -56,16 +56,9 @@
 
     <div id="ui-container">
         <select id="songSelect">
-            <option value="axelf">🎵 Crazy Frog / Axel F (Pilna melodija)</option>
-            <option value="tetris">🧱 Tetris Main Theme (Garais pantiņš)</option>
-            <option value="megalovania">💀 Undertale - Megalovania (Pilna tēma)</option>
-            <option value="wewillrockyou">🎸 Queen - We Will Rock You (Garāks bīts)</option>
-            <option value="mario">🍄 Super Mario Bros (Pilna tēma)</option>
-            <option value="coffin">⚰️ Coffin Dance (Astronomia - Garais loops)</option>
-            <option value="smells">⚡ Nirvana - Smells Like Teen Spirit</option>
-            <option value="starwars">🌌 Star Wars Theme (Garais intro)</option>
-            <option value="jingle">❄️ Jingle Bells (Viss pantiņš)</option>
-            <option value="beats">🥁 Tik Tok Bass Beat (Komplekss ritms)</option>
+            <option value="axelf">🎵 Crazy Frog (Zaļā: Sintezators | Rozā: Basi)</option>
+            <option value="wewillrockyou">🎸 Queen - We Will Rock You (Zaļā: Solo | Rozā: Bungas)</option>
+            <option value="megalovania">💀 Megalovania (Zaļā: Melodija | Rozā: Ātrais bīts)</option>
         </select>
     </div>
 
@@ -83,205 +76,112 @@
         const outerRadius = 220; 
 
         let audioCtx = null;
-        let noteIndex = 0;
         let flashOpacity = 0;
-        
-        let noteStartTime = 0;
-        let currentNoteDuration = 0.25;
 
-        // PAGARINĀTAS DZIESMAS: f = frekvence (Hz), d = ilgums (sekundēs)
+        // Katrai dziesmai ir divi neatkarīgi masīvi: track1 un track2
         const songs = {
-            axelf: [
-                // 1. daļa
-                { f: 293.66, d: 0.4 }, { f: 349.23, d: 0.4 }, { f: 293.66, d: 0.2 }, { f: 293.66, d: 0.2 },
-                { f: 392.00, d: 0.4 }, { f: 293.66, d: 0.4 }, { f: 261.63, d: 0.4 },
-                { f: 293.66, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 293.66, d: 0.2 }, { f: 293.66, d: 0.2 },
-                { f: 466.16, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 349.23, d: 0.4 },
-                { f: 293.66, d: 0.3 }, { f: 440.00, d: 0.3 }, { f: 587.33, d: 0.3 }, { f: 293.66, d: 0.2 }, 
-                { f: 261.63, d: 0.2 }, { f: 261.63, d: 0.4 }, { f: 349.23, d: 0.4 }, { f: 293.66, d: 0.6 },
-                // 2. daļa
-                { f: 293.66, d: 0.4 }, { f: 349.23, d: 0.4 }, { f: 293.66, d: 0.2 }, { f: 293.66, d: 0.2 },
-                { f: 392.00, d: 0.4 }, { f: 293.66, d: 0.4 }, { f: 261.63, d: 0.4 },
-                { f: 293.66, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 293.66, d: 0.2 }, { f: 293.66, d: 0.2 },
-                { f: 466.16, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 349.23, d: 0.4 },
-                { f: 587.33, d: 0.4 }, { f: 523.25, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 392.00, d: 0.8 }
-            ],
-            tetris: [
-                { f: 659.25, d: 0.4 }, { f: 493.88, d: 0.2 }, { f: 523.25, d: 0.2 }, { f: 587.33, d: 0.4 },
-                { f: 523.25, d: 0.2 }, { f: 493.88, d: 0.2 }, { f: 440.00, d: 0.4 }, { f: 440.00, d: 0.2 },
-                { f: 523.25, d: 0.2 }, { f: 659.25, d: 0.4 }, { f: 587.33, d: 0.2 }, { f: 523.25, d: 0.2 },
-                { f: 493.88, d: 0.6 }, { f: 523.25, d: 0.2 }, { f: 587.33, d: 0.4 }, { f: 659.25, d: 0.4 },
-                { f: 523.25, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 0.00, d: 0.2 },
-                // Turpinājums
-                { f: 587.33, d: 0.4 }, { f: 700.00, d: 0.2 }, { f: 880.00, d: 0.4 }, { f: 783.99, d: 0.2 },
-                { f: 700.00, d: 0.2 }, { f: 659.25, d: 0.6 }, { f: 523.25, d: 0.2 }, { f: 659.25, d: 0.4 },
-                { f: 587.33, d: 0.2 }, { f: 523.25, d: 0.2 }, { f: 493.88, d: 0.4 }, { f: 493.88, d: 0.2 },
-                { f: 523.25, d: 0.2 }, { f: 587.33, d: 0.4 }, { f: 659.25, d: 0.4 }, { f: 523.25, d: 0.4 },
-                { f: 440.00, d: 0.4 }, { f: 440.00, d: 0.6 }
-            ],
-            megalovania: [
-                // 1. gājiens
-                { f: 293.66, d: 0.15 }, { f: 293.66, d: 0.15 }, { f: 587.33, d: 0.3 }, { f: 440.00, d: 0.45 },
-                { f: 415.30, d: 0.3 }, { f: 392.00, d: 0.3 }, { f: 349.23, d: 0.3 }, { f: 293.66, d: 0.15 }, 
-                { f: 349.23, d: 0.15 }, { f: 392.00, d: 0.15 },
-                // 2. gājiens
-                { f: 261.63, d: 0.15 }, { f: 261.63, d: 0.15 }, { f: 587.33, d: 0.3 }, { f: 440.00, d: 0.45 },
-                { f: 415.30, d: 0.3 }, { f: 392.00, d: 0.3 }, { f: 349.23, d: 0.3 }, { f: 293.66, d: 0.15 }, 
-                { f: 349.23, d: 0.15 }, { f: 392.00, d: 0.15 },
-                // 3. gājiens
-                { f: 246.94, d: 0.15 }, { f: 246.94, d: 0.15 }, { f: 587.33, d: 0.3 }, { f: 440.00, d: 0.45 },
-                { f: 415.30, d: 0.3 }, { f: 392.00, d: 0.3 }, { f: 349.23, d: 0.3 }, { f: 293.66, d: 0.15 }, 
-                { f: 349.23, d: 0.15 }, { f: 392.00, d: 0.15 },
-                // 4. gājiens
-                { f: 233.08, d: 0.15 }, { f: 233.08, d: 0.15 }, { f: 587.33, d: 0.3 }, { f: 440.00, d: 0.45 },
-                { f: 415.30, d: 0.3 }, { f: 392.00, d: 0.3 }, { f: 349.23, d: 0.3 }, { f: 293.66, d: 0.15 }, 
-                { f: 349.23, d: 0.15 }, { f: 392.00, d: 0.15 }
-            ],
-            wewillrockyou: [
-                { f: 90.00,  d: 0.35 }, { f: 90.00,  d: 0.35 }, { f: 220.00, d: 0.7 }, { f: 0.00,   d: 0.35 },
-                { f: 90.00,  d: 0.35 }, { f: 90.00,  d: 0.35 }, { f: 220.00, d: 0.7 }, { f: 0.00,   d: 0.35 },
-                { f: 90.00,  d: 0.35 }, { f: 90.00,  d: 0.35 }, { f: 220.00, d: 0.7 },
-                { f: 293.00, d: 0.35 }, { f: 261.00, d: 0.35 }, { f: 293.00, d: 0.35 }, { f: 330.00, d: 0.7 },
-                { f: 330.00, d: 0.35 }, { f: 293.00, d: 0.35 }, { f: 220.00, d: 1.0 }
-            ],
-            mario: [
-                { f: 659.25, d: 0.15 }, { f: 659.25, d: 0.15 }, { f: 0.00, d: 0.15 }, { f: 659.25, d: 0.15 }, 
-                { f: 0.00, d: 0.15 }, { f: 523.25, d: 0.15 }, { f: 659.25, d: 0.15 }, { f: 0.00, d: 0.15 }, 
-                { f: 783.99, d: 0.15 }, { f: 0.00, d: 0.45 }, { f: 392.00, d: 0.15 }, { f: 0.00, d: 0.45 },
-                // Turpinājums
-                { f: 523.25, d: 0.2 }, { f: 0.00, d: 0.2 }, { f: 392.00, d: 0.2 }, { f: 0.00, d: 0.2 },
-                { f: 329.63, d: 0.2 }, { f: 0.00, d: 0.2 }, { f: 440.00, d: 0.15 }, { f: 493.88, d: 0.15 },
-                { f: 466.16, d: 0.15 }, { f: 440.00, d: 0.2 }, { f: 392.00, d: 0.15 }, { f: 659.25, d: 0.15 },
-                { f: 783.99, d: 0.15 }, { f: 880.00, d: 0.2 }, { f: 698.46, d: 0.15 }, { f: 783.99, d: 0.15 },
-                { f: 0.00, d: 0.15 }, { f: 659.25, d: 0.2 }, { f: 523.25, d: 0.15 }, { f: 293.66, d: 0.15 },
-                { f: 246.94, d: 0.4 }
-            ],
-            coffin: [
-                { f: 440.00, d: 0.2 }, { f: 440.00, d: 0.2 }, { f: 523.25, d: 0.2 }, { f: 493.88, d: 0.2 },
-                { f: 440.00, d: 0.2 }, { f: 392.00, d: 0.2 }, { f: 349.23, d: 0.2 }, { f: 392.00, d: 0.2 },
-                // Main part (Drop)
-                { f: 440.00, d: 0.2 }, { f: 440.00, d: 0.1 }, { f: 440.00, d: 0.1 }, { f: 440.00, d: 0.2 },
-                { f: 523.25, d: 0.2 }, { f: 493.88, d: 0.2 }, { f: 392.00, d: 0.2 }, { f: 392.00, d: 0.2 },
-                { f: 440.00, d: 0.2 }, { f: 440.00, d: 0.1 }, { f: 440.00, d: 0.1 }, { f: 440.00, d: 0.2 },
-                { f: 349.23, d: 0.2 }, { f: 392.00, d: 0.2 }, { f: 293.66, d: 0.4 }
-            ],
-            smells: [
-                { f: 146.83, d: 0.2 }, { f: 146.83, d: 0.2 }, { f: 0.00, d: 0.1 }, { f: 146.83, d: 0.1 },
-                { f: 196.00, d: 0.2 }, { f: 196.00, d: 0.2 }, { f: 0.00, d: 0.1 },
-                { f: 164.81, d: 0.2 }, { f: 164.81, d: 0.2 }, { f: 0.00, d: 0.1 }, { f: 164.81, d: 0.1 },
-                { f: 220.00, d: 0.2 }, { f: 220.00, d: 0.2 }, { f: 0.00, d: 0.2 },
-                // Pagarinājums
-                { f: 146.83, d: 0.2 }, { f: 146.83, d: 0.2 }, { f: 146.83, d: 0.2 },
-                { f: 196.00, d: 0.2 }, { f: 196.00, d: 0.3 }, { f: 164.81, d: 0.2 },
-                { f: 220.00, d: 0.2 }, { f: 220.00, d: 0.4 }
-            ],
-            starwars: [
-                { f: 220.00, d: 0.4 }, { f: 220.00, d: 0.4 }, { f: 220.00, d: 0.4 }, 
-                { f: 293.66, d: 0.6 }, { f: 440.00, d: 0.2 }, { f: 392.00, d: 0.4 }, 
-                { f: 349.23, d: 0.4 }, { f: 329.63, d: 0.4 }, { f: 587.33, d: 0.6 }, { f: 440.00, d: 0.2 },
-                // Otrā frāze
-                { f: 392.00, d: 0.4 }, { f: 349.23, d: 0.4 }, { f: 329.63, d: 0.4 }, { f: 587.33, d: 0.6 },
-                { f: 440.00, d: 0.2 }, { f: 392.00, d: 0.4 }, { f: 349.23, d: 0.4 }, { f: 392.00, d: 0.4 },
-                { f: 329.63, d: 0.8 }
-            ],
-            jingle: [
-                { f: 329.63, d: 0.3 }, { f: 329.63, d: 0.3 }, { f: 329.63, d: 0.6 },
-                { f: 329.63, d: 0.3 }, { f: 329.63, d: 0.3 }, { f: 329.63, d: 0.6 },
-                { f: 329.63, d: 0.3 }, { f: 392.00, d: 0.3 }, { f: 261.63, d: 0.45 }, { f: 293.66, d: 0.15 },
-                { f: 329.63, d: 0.8 }, { f: 0.00, d: 0.2 },
-                // Otrā daļa
-                { f: 349.23, d: 0.3 }, { f: 349.23, d: 0.3 }, { f: 349.23, d: 0.45 }, { f: 349.23, d: 0.15 },
-                { f: 349.23, d: 0.3 }, { f: 329.63, d: 0.3 }, { f: 329.63, d: 0.3 }, { f: 329.63, d: 0.15 }, { f: 329.63, d: 0.15 },
-                { f: 329.63, d: 0.3 }, { f: 293.66, d: 0.3 }, { f: 293.66, d: 0.3 }, { f: 329.63, d: 0.3 },
-                { f: 293.66, d: 0.6 }, { f: 392.00, d: 0.6 }
-            ],
-            beats: [
-                { f: 80.00, d: 0.2 }, { f: 80.00, d: 0.2 }, { f: 160.00, d: 0.4 }, { f: 0.00, d: 0.2 },
-                { f: 80.00, d: 0.1 }, { f: 80.00, d: 0.1 }, { f: 80.00, d: 0.2 }, { f: 160.00, d: 0.4 },
-                { f: 100.00, d: 0.2 }, { f: 100.00, d: 0.2 }, { f: 100.00, d: 0.2 },
-                { f: 200.00, d: 0.1 }, { f: 200.00, d: 0.1 }, { f: 200.00, d: 0.1 }, { f: 200.00, d: 0.1 }
-            ]
+            axelf: {
+                track1: [ // Sintezatora melodija
+                    { f: 293.66, d: 0.4 }, { f: 349.23, d: 0.4 }, { f: 293.66, d: 0.2 }, { f: 293.66, d: 0.2 },
+                    { f: 392.00, d: 0.4 }, { f: 293.66, d: 0.4 }, { f: 261.63, d: 0.4 },
+                    { f: 293.66, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 293.66, d: 0.2 }, { f: 293.66, d: 0.2 },
+                    { f: 466.16, d: 0.4 }, { f: 440.00, d: 0.4 }, { f: 349.23, d: 0.4 }
+                ],
+                track2: [ // Pavadošais basu ritms
+                    { f: 110.00, d: 0.8 }, { f: 110.00, d: 0.8 }, { f: 146.83, d: 0.8 }, { f: 146.83, d: 0.8 },
+                    { f: 130.81, d: 0.8 }, { f: 164.81, d: 0.8 }
+                ]
+            },
+            wewillrockyou: {
+                track1: [ // Ģitāras / Vokāla daļa
+                    { f: 0.00,   d: 1.4 }, { f: 293.00, d: 0.35 }, { f: 261.00, d: 0.35 }, 
+                    { f: 196.00, d: 0.7 }, { f: 220.00, d: 0.7 }
+                ],
+                track2: [ // Slavenais bungu ritms (Bums-Bums-Čiks)
+                    { f: 80.00, d: 0.35 }, { f: 80.00, d: 0.35 }, { f: 150.00, d: 0.7 },
+                    { f: 80.00, d: 0.35 }, { f: 80.00, d: 0.35 }, { f: 150.00, d: 0.7 }
+                ]
+            },
+            megalovania: {
+                track1: [ // Pamata tēma
+                    { f: 293.66, d: 0.3 }, { f: 293.66, d: 0.3 }, { f: 587.33, d: 0.6 }, { f: 440.00, d: 0.9 },
+                    { f: 415.30, d: 0.6 }, { f: 392.00, d: 0.6 }, { f: 349.23, d: 0.6 }
+                ],
+                track2: [ // Ātrais fona temps
+                    { f: 100.00, d: 0.15 }, { f: 100.00, d: 0.15 }, { f: 100.00, d: 0.15 }, { f: 100.00, d: 0.15 },
+                    { f: 120.00, d: 0.15 }, { f: 120.00, d: 0.15 }, { f: 120.00, d: 0.15 }, { f: 120.00, d: 0.15 }
+                ]
+            }
         };
 
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                noteStartTime = audioCtx.currentTime;
-                currentNoteDuration = songs[songSelect.value][0].d;
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            infoElement.style.display = "none";
-        }
-
-        songSelect.addEventListener('change', () => {
-            noteIndex = 0;
-            if (audioCtx) {
-                noteStartTime = audioCtx.currentTime;
-                currentNoteDuration = songs[songSelect.value][0].d;
-            }
-        });
-
-        function playHitNote() {
-            if (!audioCtx) return;
-
-            const currentSong = songs[songSelect.value];
-            let note = currentSong[noteIndex % currentSong.length];
-            
-            if (note.f > 0) {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                osc.type = note.f < 150 ? "sine" : "triangle";
-                osc.frequency.setValueAtTime(note.f, audioCtx.currentTime);
-
-                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + note.d);
-
-                osc.start();
-                osc.stop(audioCtx.currentTime + note.d);
-                
-                flashOpacity = 0.35;
-            }
-
-            // Pārejam uz nākamo noti un nosakām tās ilgumu bumbiņai
-            noteIndex++;
-            let nextNote = currentSong[noteIndex % currentSong.length];
-            currentNoteDuration = nextNote.d; 
-            noteStartTime = audioCtx.currentTime;
-        }
-
         class RhythmBall {
-            constructor() {
+            constructor(offsetX, color, type) {
                 this.radius = 12;
                 this.maxTravel = outerRadius - this.radius - 4;
-                this.color = "#00ffcc";
+                this.color = color;
+                this.offsetX = offsetX; // Nobīde no centra, lai bumbiņas nesaliptu
+                this.type = type; // "sine" vai "triangle" sintezatoram
+                
+                this.noteIndex = 0;
+                this.noteStartTime = 0;
+                this.currentNoteDuration = 0.5;
             }
 
-            update(currentTime) {
+            reset(currentTime, duration) {
+                this.noteIndex = 0;
+                this.noteStartTime = currentTime;
+                this.currentNoteDuration = duration;
+            }
+
+            update(currentTime, trackData) {
                 if (!audioCtx) return;
 
-                let timePassed = currentTime - noteStartTime;
-                let progress = timePassed / currentNoteDuration;
+                let timePassed = currentTime - this.noteStartTime;
+                let progress = timePassed / this.currentNoteDuration;
                 if (progress > 1) progress = 1;
 
-                // Mainām virzienu (augšā/lejā) katrā atsitienā
+                // Aprēķina kustību augšup/lejup
                 let positionFactor;
-                if (noteIndex % 2 === 0) {
+                if (this.noteIndex % 2 === 0) {
                     positionFactor = Math.cos(progress * Math.PI);
                 } else {
                     positionFactor = -Math.cos(progress * Math.PI);
                 }
 
-                this.x = centerX;
+                this.x = centerX + this.offsetX;
                 this.y = centerY + positionFactor * this.maxTravel;
 
+                // Kad sasniegts malas punkts, atskaņo noti un pārslēdzas uz nākamo
                 if (progress >= 1) {
-                    playHitNote();
+                    this.playNote(trackData);
                 }
+            }
+
+            playNote(trackData) {
+                let note = trackData[this.noteIndex % trackData.length];
+
+                if (note.f > 0) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.type = this.type;
+                    osc.frequency.setValueAtTime(note.f, audioCtx.currentTime);
+
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + note.d);
+
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + note.d);
+                    
+                    flashOpacity = 0.35;
+                }
+
+                this.noteIndex++;
+                let nextNote = trackData[this.noteIndex % trackData.length];
+                this.currentNoteDuration = nextNote.d;
+                this.noteStartTime = audioCtx.currentTime;
             }
 
             draw() {
@@ -296,32 +196,39 @@
             }
         }
 
-        const ball = new RhythmBall();
+        // Izveidojam divas bumbiņas ar nobīdi pa kreisi (-40px) un pa labi (+40px)
+        const ball1 = new RhythmBall(-40, "#00ffcc", "triangle"); // Melodija
+        const ball2 = new RhythmBall(40, "#ff007f", "sine");     // Bungi / Basi
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const currentSong = songs[songSelect.value];
+                ball1.reset(audioCtx.currentTime, currentSong.track1[0].d);
+                ball2.reset(audioCtx.currentTime, currentSong.track2[0].d);
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            infoElement.style.display = "none";
+        }
+
+        songSelect.addEventListener('change', () => {
+            if (audioCtx) {
+                const currentSong = songs[songSelect.value];
+                ball1.reset(audioCtx.currentTime, currentSong.track1[0].d);
+                ball2.reset(audioCtx.currentTime, currentSong.track2[0].d);
+            }
+        });
 
         function drawOuterCircle() {
             ctx.beginPath();
             ctx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
             ctx.lineWidth = 6;
-            ctx.strokeStyle = `rgba(255, 0, 127, ${0.3 + flashOpacity})`;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.15 + flashOpacity})`;
             ctx.stroke();
 
             if (flashOpacity > 0) flashOpacity -= 0.02;
-
-            const spikeCount = 50;
-            ctx.fillStyle = "rgba(255, 0, 127, 0.1)";
-            for (let i = 0; i < spikeCount; i++) {
-                let angle = (i / spikeCount) * Math.PI * 2;
-                ctx.save();
-                ctx.translate(centerX, centerY);
-                ctx.rotate(angle);
-                ctx.beginPath();
-                ctx.moveTo(0, -outerRadius + 6);
-                ctx.lineTo(-6, -outerRadius + 18);
-                ctx.lineTo(6, -outerRadius + 18);
-                ctx.closePath();
-                ctx.fill();
-                ctx.restore();
-            }
         }
 
         function gameLoop() {
@@ -329,9 +236,13 @@
             drawOuterCircle();
             
             if (audioCtx) {
-                ball.update(audioCtx.currentTime);
+                const currentSong = songs[songSelect.value];
+                ball1.update(audioCtx.currentTime, currentSong.track1);
+                ball2.update(audioCtx.currentTime, currentSong.track2);
             }
-            ball.draw();
+            
+            ball1.draw();
+            ball2.draw();
 
             requestAnimationFrame(gameLoop);
         }
