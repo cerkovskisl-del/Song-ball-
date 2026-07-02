@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ritma Mikseris - Īstas Melodijas</title>
+    <title>Izstrādātas Ritma Melodijas</title>
     <style>
         body {
             margin: 0;
@@ -76,13 +76,13 @@
 
     <div id="ui-container">
         <select id="songSelect">
-            <option value="pirates">🏴‍☠️ He's a Pirate (Pilnāka tēma)</option>
-            <option value="tetris">🧱 Tetris (Melodija un Bass)</option>
+            <option value="ode_to_joy">🇪🇺 Ode to Joy (Bēthovens — Pilna tēma)</option>
+            <option value="star_wars">🚀 Star Wars Theme (Zvaigžņu kari)</option>
         </select>
 
         <div id="controls">
-            <button class="toggle-btn active" id="btn0">🟢 Melodija</button>
-            <button class="toggle-btn active" id="btn1">🔵 Bass / Ritms</button>
+            <button class="toggle-btn active" id="btn0">🟢 Galvenā Melodija</button>
+            <button class="toggle-btn active" id="btn1">🔵 Pavadošais Bass</button>
         </div>
     </div>
 
@@ -103,45 +103,47 @@
         let flashOpacity = 0;
 
         const songs = {
-            pirates: [
-                { // 1. Bumba: Slavenais motīvs
+            ode_to_joy: [
+                { // 1. Bumba: Pilna, izstrādāta melodija (Taisna un skaidra)
                     type: "triangle", color: "#00ffcc", offsetX: -30,
                     notes: [
-                        {f: 293.66, d: 0.15}, {f: 329.63, d: 0.15}, {f: 349.23, d: 0.3}, {f: 392.00, d: 0.15},
-                        {f: 440.00, d: 0.3}, {f: 392.00, d: 0.15}, {f: 349.23, d: 0.3}, {f: 329.63, d: 0.15},
-                        {f: 293.66, d: 0.45}, {f: 0.00, d: 0.15},
-                        {f: 293.66, d: 0.15}, {f: 329.63, d: 0.15}, {f: 349.23, d: 0.3}, {f: 392.00, d: 0.15},
-                        {f: 440.00, d: 0.3}, {f: 392.00, d: 0.15}, {f: 349.23, d: 0.3}, {f: 369.99, d: 0.15},
-                        {f: 392.00, d: 0.45}
+                        {f: 329.63, d: 0.4}, {f: 329.63, d: 0.4}, {f: 349.23, d: 0.4}, {f: 392.00, d: 0.4},
+                        {f: 392.00, d: 0.4}, {f: 349.23, d: 0.4}, {f: 329.63, d: 0.4}, {f: 293.66, d: 0.4},
+                        {f: 261.63, d: 0.4}, {f: 261.63, d: 0.4}, {f: 293.66, d: 0.4}, {f: 329.63, d: 0.4},
+                        {f: 329.63, d: 0.6}, {f: 293.66, d: 0.2}, {f: 293.66, d: 0.8},
+                        
+                        {f: 329.63, d: 0.4}, {f: 329.63, d: 0.4}, {f: 349.23, d: 0.4}, {f: 392.00, d: 0.4},
+                        {f: 392.00, d: 0.4}, {f: 349.23, d: 0.4}, {f: 329.63, d: 0.4}, {f: 293.66, d: 0.4},
+                        {f: 261.63, d: 0.4}, {f: 261.63, d: 0.4}, {f: 293.66, d: 0.4}, {f: 329.63, d: 0.4},
+                        {f: 293.66, d: 0.6}, {f: 261.63, d: 0.2}, {f: 261.63, d: 0.8}
                     ]
                 },
-                { // 2. Bumba: Pavadošais marša ritms
-                    type: "sine", color: "#ff0055", offsetX: 30,
+                { // 2. Bumba: Atbilstošas basu harmonijas, kas mainās līdz ar akordiem
+                    type: "sine", color: "#0077ff", offsetX: 30,
                     notes: [
-                        {f: 110.00, d: 0.3}, {f: 110.00, d: 0.15}, {f: 110.00, d: 0.15},
-                        {f: 110.00, d: 0.3}, {f: 110.00, d: 0.15}, {f: 110.00, d: 0.15},
-                        {f: 146.83, d: 0.3}, {f: 146.83, d: 0.15}, {f: 146.83, d: 0.15},
-                        {f: 130.81, d: 0.3}, {f: 130.81, d: 0.15}, {f: 130.81, d: 0.15}
+                        {f: 130.81, d: 1.6}, {f: 146.83, d: 1.6}, {f: 130.81, d: 1.6}, {f: 196.00, d: 1.6},
+                        {f: 130.81, d: 1.6}, {f: 146.83, d: 1.6}, {f: 130.81, d: 0.8}, {f: 196.00, d: 0.8}, {f: 130.81, d: 1.6}
                     ]
                 }
             ],
-            tetris: [
-                { // 1. Bumba: Galvenā melodija soli pa solim
-                    type: "triangle", color: "#00ffcc", offsetX: -30,
+            star_wars: [
+                { // 1. Bumba: Galvenā tēma (Ar precīzām triolēm/pauzēm)
+                    type: "sawtooth", color: "#ffcc00", offsetX: -30,
                     notes: [
-                        {f: 659.25, d: 0.4}, {f: 493.88, d: 0.2}, {f: 523.25, d: 0.2}, {f: 587.33, d: 0.4},
-                        {f: 523.25, d: 0.2}, {f: 493.88, d: 0.2}, {f: 440.00, d: 0.4}, {f: 440.00, d: 0.2},
-                        {f: 523.25, d: 0.2}, {f: 659.25, d: 0.4}, {f: 587.33, d: 0.2}, {f: 523.25, d: 0.2},
-                        {f: 493.88, d: 0.6}, {f: 523.25, d: 0.2}, {f: 587.33, d: 0.4}, {f: 659.25, d: 0.4},
-                        {f: 523.25, d: 0.4}, {f: 440.00, d: 0.4}, {f: 440.00, d: 0.4}
+                        {f: 146.83, d: 0.2}, {f: 146.83, d: 0.2}, {f: 146.83, d: 0.2},
+                        {f: 196.00, d: 0.8}, {f: 293.66, d: 0.8},
+                        {f: 261.63, d: 0.2}, {f: 246.94, d: 0.2}, {f: 220.00, d: 0.2}, {f: 392.00, d: 0.8}, {f: 293.66, d: 0.4},
+                        {f: 261.63, d: 0.2}, {f: 246.94, d: 0.2}, {f: 220.00, d: 0.2}, {f: 392.00, d: 0.8}, {f: 293.66, d: 0.4},
+                        {f: 261.63, d: 0.2}, {f: 246.94, d: 0.2}, {f: 261.63, d: 0.2}, {f: 220.00, d: 0.8}
                     ]
                 },
-                { // 2. Bumba: Sinhronizēts bass
-                    type: "sine", color: "#0077ff", offsetX: 30,
+                { // 2. Bumba: Ritma sekcija, kas uzsit spēcīgus akcentus uz katru takti
+                    type: "sine", color: "#ff0055", offsetX: 30,
                     notes: [
-                        {f: 220.00, d: 0.4}, {f: 220.00, d: 0.4}, {f: 293.66, d: 0.4}, {f: 293.66, d: 0.4},
-                        {f: 261.63, d: 0.4}, {f: 261.63, d: 0.4}, {f: 220.00, d: 0.4}, {f: 220.00, d: 0.4},
-                        {f: 196.00, d: 0.4}, {f: 196.00, d: 0.4}, {f: 220.00, d: 0.8}
+                        {f: 98.00, d: 0.6}, {f: 0.00, d: 0.2}, 
+                        {f: 98.00, d: 0.4}, {f: 146.83, d: 0.4},
+                        {f: 130.81, d: 0.4}, {f: 123.47, d: 0.4}, {f: 110.00, d: 0.4}, {f: 98.00, d: 0.4},
+                        {f: 146.83, d: 0.8}, {f: 98.00, d: 0.8}
                     ]
                 }
             ]
@@ -159,7 +161,7 @@
                 this.active = true; 
                 this.noteIndex = 0;
                 this.noteStartTime = 0;
-                this.currentNoteDuration = 0.3;
+                this.currentNoteDuration = 0.4;
                 
                 this.x = centerX + this.offsetX;
                 this.y = centerY;
@@ -202,14 +204,15 @@
                     osc.type = this.type;
                     osc.frequency.setValueAtTime(note.f, audioCtx.currentTime);
 
-                    let vol = this.type === "sine" ? 0.35 : 0.15;
+                    // Sabalansēts skaļums dažādiem sintezatoru veidiem
+                    let vol = this.type === "sine" ? 0.4 : (this.type === "sawtooth" ? 0.12 : 0.16);
                     gain.gain.setValueAtTime(vol, audioCtx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + note.d);
 
                     osc.start();
                     osc.stop(audioCtx.currentTime + note.d);
                     
-                    flashOpacity = 0.2;
+                    flashOpacity = 0.25;
                 }
 
                 this.noteIndex++;
@@ -242,10 +245,6 @@
             activeBalls = [];
             const ballConfigs = songs[songSelect.value];
             
-            for(let i = 0; i < 2; i++) {
-                document.getElementById(`btn${i}`).style.display = "none";
-            }
-
             ballConfigs.forEach((config, index) => {
                 const newBall = new RhythmBall(config);
                 if (audioCtx) newBall.reset(audioCtx.currentTime);
@@ -253,7 +252,6 @@
                 
                 const btn = document.getElementById(`btn${index}`);
                 if (btn) {
-                    btn.style.display = "inline-block";
                     btn.classList.add("active");
                 }
             });
