@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ritma Mikseris - Daudz bumbas</title>
+    <title>Ritma Mikseris - Jaunās Dziesmas</title>
     <style>
         body {
             margin: 0;
@@ -76,15 +76,17 @@
 
     <div id="ui-container">
         <select id="songSelect">
+            <option value="pirates">🏴‍☠️ He's a Pirate (Karību Jūras Pirāti - 3 Bumbas)</option>
+            <option value="cyberpunk">⚡ Cyberpunk Beats (4 Bumbas - Labs Bass)</option>
+            <option value="megalovania_v2">💀 Megalovania Remix (4 Celiņi)</option>
             <option value="mega_mix">🎛️ Mega Ritma Salikums (4 Celiņi)</option>
-            <option value="tetris_remix">🧱 Tetris Kompleksais Mikseris (3 Celiņi)</option>
         </select>
 
         <div id="controls">
-            <button class="toggle-btn active" id="btn0">🟢 1. Bumba</button>
-            <button class="toggle-btn active" id="btn1">🔵 2. Bumba</button>
-            <button class="toggle-btn active" id="btn2">🟡 3. Bumba</button>
-            <button class="toggle-btn active" id="btn3">🔴 4. Bumba</button>
+            <button class="toggle-btn active" id="btn0">🟢 Melodija</button>
+            <button class="toggle-btn active" id="btn1">🔵 Harmonija</button>
+            <button class="toggle-btn active" id="btn2">🟡 Ritms</button>
+            <button class="toggle-btn active" id="btn3">🔴 Basi</button>
         </div>
     </div>
 
@@ -104,38 +106,85 @@
         let audioCtx = null;
         let flashOpacity = 0;
 
-        // Dziesmu struktūra (katram celiņam sava instruments/ritms/frekvence)
+        // Atjaunotā dziesmu datu bāze ar jaunajām kompozīcijām
         const songs = {
+            pirates: [
+                { // 1. Bumba: Pamata tēma (Vijoļu solo)
+                    type: "triangle", color: "#00ffcc", offsetX: -40,
+                    notes: [
+                        {f: 293.66, d: 0.2}, {f: 329.63, d: 0.2}, {f: 349.23, d: 0.4}, {f: 392.00, d: 0.2},
+                        {f: 440.00, d: 0.4}, {f: 392.00, d: 0.2}, {f: 349.23, d: 0.4}, {f: 329.63, d: 0.2},
+                        {f: 293.66, d: 0.6}, {f: 349.23, d: 0.2}, {f: 392.00, d: 0.2}, {f: 440.00, d: 0.4}
+                    ]
+                },
+                { // 2. Bumba: Pūšamie instrumenti (Harmonija)
+                    type: "sawtooth", color: "#0077ff", offsetX: 0,
+                    notes: [
+                        {f: 146.83, d: 0.6}, {f: 174.61, d: 0.6}, {f: 220.00, d: 0.6}, {f: 196.00, d: 0.6},
+                        {f: 146.83, d: 0.6}, {f: 130.81, d: 0.6}, {f: 146.83, d: 1.2}
+                    ]
+                },
+                { // 3. Bumba: Orķestra bungas/Ritms
+                    type: "sine", color: "#ff0055", offsetX: 40,
+                    notes: [
+                        {f: 90.00, d: 0.2}, {f: 90.00, d: 0.2}, {f: 140.00, d: 0.2},
+                        {f: 90.00, d: 0.2}, {f: 90.00, d: 0.2}, {f: 140.00, d: 0.2},
+                        {f: 90.00, d: 0.2}, {f: 90.00, d: 0.2}, {f: 140.00, d: 0.2}
+                    ]
+                }
+            ],
+            cyberpunk: [
+                { // 1. Bumba: Lāzera Melodija
+                    type: "sawtooth", color: "#00ffcc", offsetX: -60,
+                    notes: [{f: 440.00, d: 0.15}, {f: 440.00, d: 0.15}, {f: 0.00, d: 0.15}, {f: 523.25, d: 0.15}, {f: 493.88, d: 0.3}]
+                },
+                { // 2. Bumba: Sintezatora fons
+                    type: "triangle", color: "#0077ff", offsetX: -20,
+                    notes: [{f: 220.00, d: 0.6}, {f: 261.63, d: 0.6}, {f: 196.00, d: 0.6}, {f: 220.00, d: 0.6}]
+                },
+                { // 3. Bumba: Ātrais Hi-Hat (čiks)
+                    type: "triangle", color: "#ffcc00", offsetX: 20,
+                    notes: [{f: 900.00, d: 0.1}, {f: 0.00, d: 0.1}, {f: 900.00, d: 0.1}, {f: 900.00, d: 0.1}]
+                },
+                { // 4. Bumba: Smagais Sub-Bass
+                    type: "sine", color: "#ff0055", offsetX: 60,
+                    notes: [{f: 55.00, d: 0.3}, {f: 55.00, d: 0.3}, {f: 0.00, d: 0.3}, {f: 65.41, d: 0.3}]
+                }
+            ],
+            megalovania_v2: [
+                { // 1. Bumba: Ātrā vadošā tēma
+                    type: "triangle", color: "#00ffcc", offsetX: -60,
+                    notes: [{f: 293.66, d: 0.15}, {f: 293.66, d: 0.15}, {f: 587.33, d: 0.3}, {f: 440.00, d: 0.45}]
+                },
+                { // 2. Bumba: Vidējais reģistrs
+                    type: "sawtooth", color: "#0077ff", offsetX: -20,
+                    notes: [{f: 146.83, d: 0.3}, {f: 146.83, d: 0.3}, {f: 146.83, d: 0.45}]
+                },
+                { // 3. Bumba: Ritma akcenti
+                    type: "sine", color: "#ffcc00", offsetX: 20,
+                    notes: [{f: 300.00, d: 0.15}, {f: 0.00, d: 0.15}, {f: 200.00, d: 0.3}]
+                },
+                { // 4. Bumba: Zemie basu sitieni
+                    type: "sine", color: "#ff0055", offsetX: 60,
+                    notes: [{f: 73.42, d: 0.6}, {f: 65.41, d: 0.6}]
+                }
+            ],
             mega_mix: [
-                { // 1. Bumba: Augstā melodija (Klavieres)
+                { 
                     type: "triangle", color: "#00ffcc", offsetX: -60,
                     notes: [{f: 523.25, d: 0.3}, {f: 587.33, d: 0.3}, {f: 659.25, d: 0.3}, {f: 783.99, d: 0.6}]
                 },
-                { // 2. Bumba: Vidējā harmonija (Sintezators)
+                { 
                     type: "sawtooth", color: "#0077ff", offsetX: -20,
                     notes: [{f: 261.63, d: 0.6}, {f: 329.63, d: 0.6}, {f: 392.00, d: 0.6}, {f: 329.63, d: 0.6}]
                 },
-                { // 3. Bumba: Ātrais fona ritms (Trik-Trik)
+                { 
                     type: "sine", color: "#ffcc00", offsetX: 20,
                     notes: [{f: 800.00, d: 0.15}, {f: 0.00, d: 0.15}, {f: 600.00, d: 0.15}, {f: 0.00, d: 0.15}]
                 },
-                { // 4. Bumba: Smagais bāzes bīts (Bungas/Basi)
+                { 
                     type: "sine", color: "#ff0055", offsetX: 60,
                     notes: [{f: 70.00, d: 0.45}, {f: 70.00, d: 0.45}, {f: 120.00, d: 0.3}]
-                }
-            ],
-            tetris_remix: [
-                { // 1. Bumba: Tetris pamata tēma
-                    type: "triangle", color: "#00ffcc", offsetX: -40,
-                    notes: [{f: 659.25, d: 0.4}, {f: 493.88, d: 0.2}, {f: 523.25, d: 0.2}, {f: 587.33, d: 0.4}]
-                },
-                { // 2. Bumba: Stabilais bass pa apakšu
-                    type: "sine", color: "#0077ff", offsetX: 0,
-                    notes: [{f: 110.00, d: 0.4}, {f: 110.00, d: 0.4}, {f: 146.83, d: 0.4}]
-                },
-                { // 3. Bumba: Akcenti/Bungas
-                    type: "sine", color: "#ff0055", offsetX: 40,
-                    notes: [{f: 80.00, d: 0.2}, {f: 0.00, d: 0.2}, { f: 180.00, d: 0.4}]
                 }
             ]
         };
@@ -150,7 +199,7 @@
                 this.offsetX = config.offsetX;
                 this.notes = config.notes;
                 
-                this.active = true; // Vai bumba šobrīd ir ieslēgta
+                this.active = true; 
                 this.noteIndex = 0;
                 this.noteStartTime = 0;
                 this.currentNoteDuration = 0.3;
@@ -192,7 +241,6 @@
             playNote() {
                 let note = this.notes[this.noteIndex % this.notes.length];
 
-                // Skaņu spēlē tikai tad, ja bumba ir AKTIIVA un frekvence virs 0
                 if (this.active && note.f > 0 && audioCtx) {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
@@ -202,8 +250,7 @@
                     osc.type = this.type;
                     osc.frequency.setValueAtTime(note.f, audioCtx.currentTime);
 
-                    // Maigāks skaļums, jo skan reizē daudzi instrumenti
-                    let vol = this.type === "sine" ? 0.4 : 0.18;
+                    let vol = this.type === "sine" ? 0.4 : 0.16;
                     gain.gain.setValueAtTime(vol, audioCtx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + note.d);
 
@@ -223,7 +270,6 @@
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 
-                // Ja bumba izslēgta, uzzīmējam to caurspīdīgu
                 if (this.active) {
                     ctx.fillStyle = this.color;
                     ctx.shadowBlur = 15;
@@ -245,6 +291,11 @@
             activeBalls = [];
             const ballConfigs = songs[songSelect.value];
             
+            // Sākumā paslēpjam visas pogas
+            for(let i = 0; i < 4; i++) {
+                document.getElementById(`btn${i}`).style.display = "none";
+            }
+
             ballConfigs.forEach((config, index) => {
                 const newBall = new RhythmBall(config);
                 if (audioCtx) {
@@ -252,19 +303,12 @@
                 }
                 activeBalls.push(newBall);
                 
-                // Parādām pogu un atjaunojam tās stāvokli
                 const btn = document.getElementById(`btn${index}`);
                 if (btn) {
                     btn.style.display = "inline-block";
                     btn.classList.add("active");
                 }
             });
-
-            // Paslēpjam pogas tam bumbām, kuru šajā dziesmā nav
-            for(let i = ballConfigs.length; i < 4; i++) {
-                const btn = document.getElementById(`btn${i}`);
-                if (btn) btn.style.style.display = "none";
-            }
         }
 
         function initAudio() {
@@ -278,11 +322,10 @@
             infoElement.style.display = "none";
         }
 
-        // Manuālā pogu slēgšana iekšā / ārā
         for (let i = 0; i < 4; i++) {
             const btn = document.getElementById(`btn${i}`);
             btn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Lai klikšķis neizsauktu initAudio pa tukšo
+                e.stopPropagation(); 
                 if (activeBalls[i]) {
                     activeBalls[i].active = !activeBalls[i].active;
                     if (activeBalls[i].active) {
@@ -322,7 +365,6 @@
         window.addEventListener('click', initAudio);
         window.addEventListener('touchstart', initAudio);
 
-        // Ielādējam pirmo dziesmu uzreiz startā
         loadSong();
         gameLoop();
     </script>
