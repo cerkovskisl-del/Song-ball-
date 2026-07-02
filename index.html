@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bumbiņu un Apļa Spēle ar Mūziku</title>
+    <title>Bumbiņu spēle ar īstām dziesmām</title>
     <style>
         body {
             margin: 0;
@@ -38,14 +38,10 @@
             cursor: pointer;
             outline: none;
         }
-        select:hover {
-            background-color: #341f52;
-        }
         canvas {
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             box-shadow: 0 0 20px rgba(255, 0, 128, 0.3);
-            cursor: pointer;
         }
         #info {
             margin-top: 10px;
@@ -58,21 +54,20 @@
 
     <div id="ui-container">
         <div id="score">0/10</div>
-        <select id="soundSelect">
-            <option value="melody">🎹 Klavieru melodija (Mainīgas notis)</option>
-            <option value="retro">👾 Retro 8-Bit (Spēļu efekts)</option>
-            <option value="bass">🔊 Zems Bass (Bungas)</option>
+        <select id="songSelect">
+            <option value="axelf">🎵 Crazy Frog / Axel F (Beverly Hills Cop)</option>
+            <option value="twinkle">🌟 Twinkle Twinkle Little Star</option>
         </select>
     </div>
 
     <canvas id="gameCanvas" width="500" height="500"></canvas>
-    <div id="info">Uznirstošais audio aktivizējas pēc pirmā klikšķa uz ekrāna</div>
+    <div id="info">Uzklikšķini uz ekrāna, lai aktivizētu mūziku!</div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const scoreElement = document.getElementById("score");
-        const soundSelect = document.getElementById("soundSelect");
+        const songSelect = document.getElementById("songSelect");
 
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
@@ -88,7 +83,24 @@
 
         const openingSize = 0.5; 
 
-        // Web Audio API iestatīšana skaņas ģenerēšanai
+        // Nošu frekvences Hz izteiksmē dziesmām
+        const songs = {
+            axelf: [
+                293.66, 349.23, 293.66, 293.66, 392.00, 293.66, 261.63,
+                293.66, 440.00, 293.66, 293.66, 466.16, 440.00, 349.23,
+                293.66, 440.00, 587.33, 293.66, 261.63, 261.63, 220.00, 329.63, 293.66
+            ],
+            twinkle: [
+                261.63, 261.63, 392.00, 392.00, 440.00, 440.00, 392.00,
+                349.23, 349.23, 329.63, 329.63, 293.66, 293.66, 261.63,
+                392.00, 392.00, 349.23, 349.23, 329.63, 329.63, 293.66,
+                392.00, 392.00, 349.23, 349.23, 329.63, 329.63, 293.66,
+                261.63, 261.63, 392.00, 392.00, 440.00, 440.00, 392.00,
+                349.23, 349.23, 329.63, 329.63, 293.66, 293.66, 261.63
+            ]
+        };
+
+        let noteIndex = 0;
         let audioCtx = null;
 
         function initAudio() {
@@ -97,19 +109,25 @@
             }
         }
 
-        // Klavieru nošu frekvences (C4 mērogā)
-        const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
-        let noteIndex = 0;
+        // Kad dziesma tiek nomainīta, sākam notis no sākuma
+        songSelect.addEventListener('change', () => {
+            noteIndex = 0;
+        });
 
-        // Funkcija, kas uztaisa skaņu (pīkstienu) atsitiena brīdī
-        function playHitSound() {
+        function playNextNote() {
             initAudio();
             if (!audioCtx) return;
 
-            // Ja pārlūks audio ir nobloķējis, to vajag atmodināt
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
+
+            const currentSongKey = songSelect.value;
+            const currentSong = songs[currentSongKey];
+
+            // Atrodam pareizo noti
+            let freq = currentSong[noteIndex % currentSong.length];
+            noteIndex++;
 
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -117,42 +135,16 @@
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
-            const mode = soundSelect.value;
-
-            if (mode === "melody") {
-                // Skrejošas klavieru notis
-                osc.type = "sine"; 
-                let freq = notes[noteIndex % notes.length];
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                noteIndex++; // Nākamais sitiens būs augstāka/zemāka nota
-                
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.4);
-
-            } else if (mode === "retro") {
-                // Ātrs retro lēciens frekvencē
-                osc.type = "square";
-                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.15);
-                
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.15);
-
-            } else if (mode === "bass") {
-                // Zems sitiens (kā sub-bass bumba)
-                osc.type = "triangle";
-                osc.frequency.setValueAtTime(80, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(30, audioCtx.currentTime + 0.3);
-                
-                gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
-            }
+            // "Triangle" vilnis dod patīkamāku, nedaudz retro klavieru skaņu
+            osc.type = "triangle"; 
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            
+            // Skaņas skaļuma kontrole (sākumā skaļi, tad ātri nodziest)
+            gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
         }
 
         class Ball {
@@ -198,8 +190,8 @@
                         this.x = centerX + normalX * (outerRadius - this.radius - 2);
                         this.y = centerY + normalY * (outerRadius - this.radius - 2);
                         
-                        // ATSITIENS! Atskaņojam izvēlēto skaņu
-                        playHitSound();
+                        // ATSITIENS nospēlē nākamo īstās dziesmas noti
+                        playNextNote();
                     }
                 }
             }
@@ -270,7 +262,6 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // Aktivizējam audio arī tad, ja lietotājs noklikšķina jebkur uz lapas
         window.addEventListener('click', initAudio);
 
         spawnBall();
