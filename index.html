@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salabotā Bumbiņu Spēle</title>
+    <title>Perfekta Ritma ASMR Spēle</title>
     <style>
         body {
             margin: 0;
-            background-color: #0b0214;
+            background-color: #05010d;
             color: white;
-            font-family: Arial, sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -22,185 +22,132 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
             margin-bottom: 20px;
         }
-        #score {
-            font-size: 32px;
+        #title {
+            font-size: 20px;
             font-weight: bold;
-        }
-        select {
-            padding: 8px 12px;
-            font-size: 16px;
-            background-color: #221435;
-            color: white;
-            border: 2px solid #ff007f;
-            border-radius: 5px;
-            cursor: pointer;
-            outline: none;
+            color: #00ffcc;
+            letter-spacing: 3px;
         }
         canvas {
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(0, 255, 204, 0.1);
             border-radius: 50%;
-            box-shadow: 0 0 20px rgba(255, 0, 128, 0.3);
-            background-color: #05010a;
+            box-shadow: 0 0 40px rgba(0, 255, 204, 0.15);
+            background-color: #020005;
         }
         #info {
             margin-top: 15px;
             font-size: 14px;
             color: #ff007f;
             font-weight: bold;
-            animation: blink 1.5s infinite;
+            animation: blink 1.2s infinite;
         }
         @keyframes blink {
-            0% { opacity: 0.4; }
+            0% { opacity: 0.3; }
             50% { opacity: 1; }
-            100% { opacity: 0.4; }
+            100% { opacity: 0.3; }
         }
     </style>
 </head>
 <body>
 
     <div id="ui-container">
-        <div id="score">0/10</div>
-        <select id="songSelect">
-            <option value="axelf">🎵 Crazy Frog / Axel F</option>
-            <option value="twinkle">🌟 Twinkle Twinkle Little Star</option>
-        </select>
+        <div id="title">PERFECT RHYTHM SIMULATION</div>
     </div>
 
     <canvas id="gameCanvas" width="500" height="500"></canvas>
-    <div id="info">⚠️ UZKLIKŠĶINI UZ EKRĀNA, LAI IESLĒGTU SKAŅU!</div>
+    <div id="info">🎧 UZKLIKŠĶINI, LAI IESLĒGTU RITMU</div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
-        const scoreElement = document.getElementById("score");
-        const songSelect = document.getElementById("songSelect");
         const infoElement = document.getElementById("info");
 
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const outerRadius = 220; 
-        let rotationAngle = 0; 
-        const rotationSpeed = 0.015; 
-
-        const gravity = 0.25; 
-        let balls = [];
-        let maxBalls = 10;
-        let spawnedBallsCount = 0;
-        let escapedBalls = 0;
-
-        const openingSize = 0.45; 
-
-        // Īsto dziesmu nošu frekvences
-        const songs = {
-            axelf: [
-                293.66, 349.23, 293.66, 293.66, 392.00, 293.66, 261.63,
-                293.66, 440.00, 293.66, 293.66, 466.16, 440.00, 349.23,
-                293.66, 440.00, 587.33, 293.66, 261.63, 261.63, 349.23, 293.66
-            ],
-            twinkle: [
-                261.63, 261.63, 392.00, 392.00, 440.00, 440.00, 392.00,
-                349.23, 349.23, 329.63, 329.63, 293.66, 293.66, 261.63
-            ]
-        };
-
-        let noteIndex = 0;
+        
         let audioCtx = null;
+        let startTime = 0;
 
-        // Audio inicializācija pēc klikšķa
+        // Ritma uzstādījumi (BPM = Beats Per Minute)
+        const bpm = 120; 
+        const beatDuration = 60 / bpm; // Cik sekundes ilgst viens sitiens (0.5s pie 120 BPM)
+
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                startTime = audioCtx.currentTime;
             }
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
-            infoElement.style.display = "none"; // Paslēpj brīdinājumu, kad aktivizēts
+            infoElement.style.display = "none";
         }
 
-        songSelect.addEventListener('change', () => {
-            noteIndex = 0;
-        });
-
-        function playNextNote() {
-            if (!audioCtx) return; // Ja lietotājs vēl nav uzklikšķinājis, nespēlē neizraisot kļūdu
-
-            const currentSongKey = songSelect.value;
-            const currentSong = songs[currentSongKey];
-
-            let freq = currentSong[noteIndex % currentSong.length];
-            noteIndex++;
+        // Funkcija, kas rada spēcīgu bungu/bīta skaņu (Kick un Snare mikss)
+        function playRhythmHit(isMainBeat) {
+            if (!audioCtx) return;
 
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
-            // "Triangle" skan vislabāk šāda tipa spēlēm
-            osc.type = "triangle"; 
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            
-            // Skaļuma efekts - ass sākums, ātra pazušana
-            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
-            
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.35);
+            if (isMainBeat) {
+                // Zems bungu "KICK" sitiens uz katra galvenā takts viļņa
+                osc.type = "triangle";
+                osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            } else {
+                // Augstāks "SNARE/HI-HAT" klikšķis starpā
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.08);
+            }
         }
 
-        class Ball {
-            constructor() {
-                this.x = centerX;
-                this.y = centerY - 60;
-                this.vx = (Math.random() - 0.5) * 6;
-                this.vy = (Math.random() - 0.5) * 4;
-                this.radius = 11;
-                this.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
-                this.isDead = false;
+        // Bumbiņas klase, kuras pozīcija ir atkarīga no LAIKA (ritma), nevis haotiskas fizikas
+        class RhythmBall {
+            constructor(phaseOffset, radius, color, isMain) {
+                this.phaseOffset = phaseOffset; // Nobīde ritmā
+                this.maxTravel = outerRadius - radius - 5; // Maksimālais attālums līdz malai
+                this.radius = radius;
+                this.color = color;
+                this.isMain = isMain;
+                this.lastHitSide = 0; // Lai fiksētu precīzu atsitiena brīdi vizuāli
             }
 
-            update() {
-                this.vy += gravity;
-                this.x += this.vx;
-                this.y += this.vy;
+            update(elapsedTime) {
+                // Izmantojam kosinusa funkciju, lai radītu nevainojamu svārsta/atsitiena kustību
+                // sinhroni ar mūsu izvēlēto BPM ritmu
+                let frequency = (Math.PI) / beatDuration; 
+                let angle = frequency * elapsedTime + this.phaseOffset;
+                
+                // Normalizēta pozīcija starp -1 un 1
+                let positionFactor = Math.cos(angle); 
 
-                let dx = this.x - centerX;
-                let dy = this.y - centerY;
-                let distance = Math.sqrt(dx * dx + dy * dy);
+                // Aprēķinām bumbiņas X un Y koordinātas (kustas pa diagonāli vai taisni)
+                this.x = centerX + positionFactor * this.maxTravel * Math.cos(this.phaseOffset);
+                this.y = centerY + positionFactor * this.maxTravel * Math.sin(this.phaseOffset);
 
-                // Ja bumbiņa atsitas pret malu
-                if (distance + this.radius >= outerRadius) {
-                    let ballAngle = Math.atan2(dy, dx);
-                    let normalizedAngle = ballAngle - rotationAngle;
-                    normalizedAngle = Math.atan2(Math.sin(normalizedAngle), Math.cos(normalizedAngle));
-
-                    // Pārbauda caurumu apakšā
-                    if (Math.abs(normalizedAngle - Math.PI/2) < openingSize) {
-                        if (!this.isDead) {
-                            escapedBalls++;
-                            scoreElement.innerText = `${escapedBalls}/${maxBalls}`;
-                            this.isDead = true;
-                            setTimeout(spawnBall, 400);
-                        }
-                    } else {
-                        // Atlekšanas matemātika
-                        let normalX = dx / distance;
-                        let normalY = dy / distance;
-
-                        let dotProduct = this.vx * normalX + this.vy * normalY;
-                        this.vx -= 2 * dotProduct * normalX;
-                        this.vy -= 2 * dotProduct * normalY;
-
-                        // Neļauj bumbiņai iziet cauri sienai
-                        this.x = centerX + normalX * (outerRadius - this.radius - 2);
-                        this.y = centerY + normalY * (outerRadius - this.radius - 2);
-                        
-                        // Atskaņo noti
-                        playNextNote();
-                    }
+                // Fiksējam brīdi, kad positionFactor sasniedz galējos punktus (1 vai -1), kas ir atsitiens
+                let currentSide = Math.sign(Math.round(positionFactor * 100));
+                if (currentSide !== this.lastHitSide && Math.abs(positionFactor) > 0.98) {
+                    playRhythmHit(this.isMain);
+                    this.lastHitSide = currentSide;
+                    triggerFlash();
+                }
+                if (Math.abs(positionFactor) < 0.5) {
+                    this.lastHitSide = 0; // Atjaunojam stāvokli vidū
                 }
             }
 
@@ -208,74 +155,59 @@
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
                 ctx.fill();
                 ctx.closePath();
+                ctx.shadowBlur = 0;
             }
         }
 
-        function spawnBall() {
-            if (spawnedBallsCount < maxBalls) {
-                balls.push(new Ball());
-                spawnedBallsCount++;
-            }
+        // Izveidojam divas bumbiņas, kas kustas pretējos ritmos un virzienos, lai izveidotu pilnvērtīgu bītu
+        const balls = [
+            new RhythmBall(0, 14, "#00ffcc", true),          // Galvenais bīts (uz leju/augšu)
+            new RhythmBall(Math.PI / 2, 11, "#ff007f", false) // Papildritms (pa labi/kreisi)
+        ];
+
+        let flashOpacity = 0;
+        function triggerFlash() {
+            flashOpacity = 0.15; // Aplis nedaudz uzplaiksnī ritmā
         }
 
         function drawOuterCircle() {
-            ctx.save();
-            ctx.translate(centerX, centerY);
-            ctx.rotate(rotationAngle);
-
             ctx.beginPath();
-            ctx.arc(0, 0, outerRadius, Math.PI / 2 + openingSize, Math.PI / 2 - openingSize);
-            ctx.lineWidth = 8;
-            
-            let gradient = ctx.createLinearGradient(-outerRadius, 0, outerRadius, 0);
-            gradient.addColorStop(0, '#00ffcc');
-            gradient.addColorStop(0.5, '#ff007f');
-            gradient.addColorStop(1, '#ffcc00');
-            ctx.strokeStyle = gradient;
+            ctx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = `rgba(0, 255, 204, ${0.2 + flashOpacity})`;
             ctx.stroke();
 
-            // Smailes
-            const spikeCount = 45;
-            ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
-            for (let i = 0; i < spikeCount; i++) {
-                let angle = (i / spikeCount) * Math.PI * 2;
-                if (Math.abs(angle - Math.PI/2) < openingSize) continue;
+            if (flashOpacity > 0) flashOpacity -= 0.01;
 
-                ctx.save();
-                ctx.rotate(angle);
-                ctx.beginPath();
-                ctx.moveTo(0, -outerRadius + 6);
-                ctx.lineTo(-8, -outerRadius + 22);
-                ctx.lineTo(8, -outerRadius + 22);
-                ctx.closePath();
-                ctx.fill();
-                ctx.restore();
-            }
-
-            ctx.restore();
+            // Vizuālas līnijas ritma asij
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+            ctx.fill();
         }
 
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            rotationAngle += rotationSpeed;
+            
+            let elapsedTime = audioCtx ? audioCtx.currentTime - startTime : 0;
+
             drawOuterCircle();
 
-            balls = balls.filter(ball => !ball.isDead);
             balls.forEach(ball => {
-                ball.update();
+                ball.update(elapsedTime);
                 ball.draw();
             });
 
             requestAnimationFrame(gameLoop);
         }
 
-        // Klausītāji audio aktivizēšanai no jebkura klikšķa
         window.addEventListener('click', initAudio);
         window.addEventListener('touchstart', initAudio);
 
-        spawnBall();
         gameLoop();
     </script>
 </body>
